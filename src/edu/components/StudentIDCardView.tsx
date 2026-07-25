@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Student, InstituteSettings } from '../types';
 import { Printer, X, Phone, ShieldCheck } from 'lucide-react';
 import { generateQRCodeSvg, generateBarcodeSvg } from '../utils/qr';
@@ -25,31 +25,42 @@ interface StudentIDCardViewProps {
 
 const PRINT_STYLES = `
 @media print {
-  @page { size: 90mm 58mm; margin: 2mm; }
+  @page { size: A4 landscape; margin: 8mm; }
   html, body {
     background: #ffffff !important;
     margin: 0 !important; padding: 0 !important;
-    width: 90mm !important; height: auto !important;
+    width: 297mm !important; height: 210mm !important;
     overflow: hidden !important;
   }
   body * { visibility: hidden !important; }
+  .id-print-sheet, .id-print-sheet * { visibility: visible !important; }
   .id-print-area, .id-print-area * { visibility: visible !important; }
-  .id-print-area {
+  .id-print-sheet {
     position: fixed !important;
     left: 0 !important; top: 0 !important;
+    width: 183.2mm !important; height: 53.98mm !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 6mm !important;
+    margin: 0 !important; padding: 0 !important;
+    overflow: hidden !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .id-print-area {
+    position: relative !important;
+    left: auto !important; top: auto !important;
     width: 85.6mm !important; height: 53.98mm !important;
+    flex: 0 0 85.6mm !important;
     margin: 0 !important;
     box-shadow: none !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
-  /* When there are two cards (front + back), put the second on a new page */
-  .id-print-area + .id-print-area {
-    position: static !important;
-    display: block !important;
-    page-break-before: always !important;
-    break-before: page !important;
-    margin: 0 !important;
+  .id-print-single {
+    position: fixed !important;
+    left: 0 !important; top: 0 !important;
   }
   .no-print { display: none !important; }
   * {
@@ -60,6 +71,93 @@ const PRINT_STYLES = `
 }
 `;
 
+const ISOLATED_PRINT_STYLES = `
+@page { size: A4 landscape; margin: 8mm; }
+html, body {
+  background: #ffffff !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 297mm !important;
+  height: 210mm !important;
+  overflow: hidden !important;
+}
+body, * {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+.print-shell {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  overflow: hidden !important;
+}
+.id-print-sheet {
+  width: 183.2mm !important;
+  height: 53.98mm !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: 6mm !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+.id-print-area {
+  width: 85.6mm !important;
+  height: 53.98mm !important;
+  flex: 0 0 85.6mm !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}
+.id-print-single {
+  position: static !important;
+}
+.no-print {
+  display: none !important;
+}
+`;
+
+const printInIsolatedFrame = (element: HTMLElement) => {
+  const iframe = document.createElement('iframe');
+  iframe.title = 'ID card print frame';
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.style.opacity = '0';
+  document.body.appendChild(iframe);
+
+  const printDocument = iframe.contentDocument || iframe.contentWindow?.document;
+  const printWindow = iframe.contentWindow;
+
+  if (!printDocument || !printWindow) {
+    iframe.remove();
+    window.print();
+    return;
+  }
+
+  const documentStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+    .map((node) => node.outerHTML)
+    .join('\n');
+
+  printDocument.open();
+  printDocument.write(`<!doctype html><html><head><meta charset="utf-8" />${documentStyles}<style>${ISOLATED_PRINT_STYLES}</style></head><body><main class="print-shell">${element.outerHTML}</main></body></html>`);
+  printDocument.close();
+
+  window.setTimeout(() => {
+    printWindow.focus();
+    printWindow.print();
+    window.setTimeout(() => iframe.remove(), 1000);
+  }, 350);
+};
+
 export const StudentIDCardView: React.FC<StudentIDCardViewProps> = ({
   student,
   settings,
@@ -67,11 +165,20 @@ export const StudentIDCardView: React.FC<StudentIDCardViewProps> = ({
   onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<'digital' | 'printable'>('digital');
+  const digitalPrintRef = useRef<HTMLDivElement>(null);
+  const printablePrintRef = useRef<HTMLDivElement>(null);
   const qrSvg = generateQRCodeSvg(student.studentNumber, 70);
   const qrSvgSmall = generateQRCodeSvg(student.studentNumber, 54);
   const barcodeSvg = generateBarcodeSvg(student.studentNumber, 180, 28);
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    const target = activeTab === 'printable' ? printablePrintRef.current : digitalPrintRef.current;
+    if (!target) {
+      window.print();
+      return;
+    }
+    printInIsolatedFrame(target);
+  };
 
   return (
     <div
@@ -136,7 +243,8 @@ export const StudentIDCardView: React.FC<StudentIDCardViewProps> = ({
           {/* ============================================================ */}
           {activeTab === 'digital' && (
             <div
-              className="id-print-area relative overflow-hidden rounded-[3mm] shadow-2xl text-white"
+              ref={digitalPrintRef}
+              className="id-print-area id-print-single relative overflow-hidden rounded-[3mm] shadow-2xl text-white"
               style={{
                 width: '85.6mm',
                 height: '53.98mm',
@@ -240,7 +348,7 @@ export const StudentIDCardView: React.FC<StudentIDCardViewProps> = ({
           {/* TAB 2 — PRINTABLE PLASTIC CARD (FRONT + BACK, CR80)          */}
           {/* ============================================================ */}
           {activeTab === 'printable' && (
-            <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div ref={printablePrintRef} className="id-print-sheet flex flex-col sm:flex-row items-center gap-6">
               {/* FRONT */}
               <div
                 className="id-print-area relative overflow-hidden rounded-[3mm] bg-white shadow-2xl text-slate-900"

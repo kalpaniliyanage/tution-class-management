@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Student, SubjectClass, PaymentRecord, InstituteSettings } from '../types';
 import { Printer, X, CheckCircle2, Stamp, Phone, RotateCcw } from 'lucide-react';
 import { generateQRCodeSvg, generateBarcodeSvg } from '../utils/qr';
@@ -26,11 +26,12 @@ const MONTH_LONG = ['January','February','March','April','May','June','July','Au
  */
 const PRINT_STYLES = `
 @media print {
+  @page { size: A4 landscape; margin: 6mm; }
   html, body {
     background: #ffffff !important;
     color: #0f172a !important;
     margin: 0 !important; padding: 0 !important;
-    height: auto !important;
+    width: 297mm !important; height: 210mm !important;
     overflow: hidden !important;
   }
   body * { visibility: hidden !important; }
@@ -42,9 +43,11 @@ const PRINT_STYLES = `
     background: #ffffff !important;
     color: #0f172a !important;
     box-shadow: none !important;
-    border: none !important;
+    overflow: hidden !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
   }
   .no-print { display: none !important; }
   * {
@@ -52,18 +55,108 @@ const PRINT_STYLES = `
     print-color-adjust: exact !important;
     color-adjust: exact !important;
   }
-}
-@media print {
-  /* Monthly card fits a small CR80-ish page */
   .pay-print-area.pay-monthly { width: 85.6mm !important; height: 53.98mm !important; }
-  /* Yearly grid needs A4 landscape */
-  .pay-print-area.pay-yearly  { width: 277mm !important; height: auto !important; }
+  .pay-print-area.pay-yearly  { width: 277mm !important; max-height: 190mm !important; transform-origin: top left !important; }
+  .pay-print-dash { display: inline !important; }
 }
-@page pay-cr80    { size: 90mm 58mm; margin: 2mm; }
-@page pay-a4-land { size: A4 landscape; margin: 6mm; }
-.pay-print-area.pay-monthly { page: pay-cr80; }
-.pay-print-area.pay-yearly  { page: pay-a4-land; }
 `;
+
+const MONTHLY_ISOLATED_PRINT_STYLES = `
+@page { size: 90mm 58mm; margin: 2mm; }
+html, body {
+  background: #ffffff !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 90mm !important;
+  height: 58mm !important;
+  overflow: hidden !important;
+}
+body, * {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+.print-shell {
+  width: 85.6mm !important;
+  height: 53.98mm !important;
+  overflow: hidden !important;
+}
+.pay-print-area.pay-monthly {
+  width: 85.6mm !important;
+  height: 53.98mm !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+.no-print { display: none !important; }
+`;
+
+const YEARLY_ISOLATED_PRINT_STYLES = `
+@page { size: A4 landscape; margin: 8mm; }
+html, body {
+  background: #ffffff !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 297mm !important;
+  height: 210mm !important;
+  overflow: hidden !important;
+}
+body, * {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+  color-adjust: exact !important;
+}
+.print-shell {
+  width: 281mm !important;
+  height: 194mm !important;
+  overflow: hidden !important;
+}
+.pay-print-area.pay-yearly {
+  width: 277mm !important;
+  max-height: 190mm !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+.pay-print-dash { display: inline !important; }
+.no-print { display: none !important; }
+`;
+
+const printInIsolatedFrame = (element: HTMLElement, styles: string) => {
+  const iframe = document.createElement('iframe');
+  iframe.title = 'Payment card print frame';
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = '0';
+  iframe.style.opacity = '0';
+  document.body.appendChild(iframe);
+
+  const printDocument = iframe.contentDocument || iframe.contentWindow?.document;
+  const printWindow = iframe.contentWindow;
+
+  if (!printDocument || !printWindow) {
+    iframe.remove();
+    window.print();
+    return;
+  }
+
+  const documentStyles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+    .map((node) => node.outerHTML)
+    .join('\n');
+
+  printDocument.open();
+  printDocument.write(`<!doctype html><html><head><meta charset="utf-8" />${documentStyles}<style>${styles}</style></head><body><main class="print-shell">${element.outerHTML}</main></body></html>`);
+  printDocument.close();
+
+  window.setTimeout(() => {
+    printWindow.focus();
+    printWindow.print();
+    window.setTimeout(() => iframe.remove(), 1000);
+  }, 350);
+};
 
 export const PaymentCardView: React.FC<PaymentCardViewProps> = ({
   student, enrolledClasses, payments, settings, darkMode, onClose, onStampPayment, isAdmin,
@@ -74,6 +167,7 @@ export const PaymentCardView: React.FC<PaymentCardViewProps> = ({
   const [tab, setTab] = useState<'monthly' | 'yearly'>('monthly');
   const [selectedClassId, setSelectedClassId] = useState<string>(enrolledClasses[0]?.id || '');
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthName);
+  const printRef = useRef<HTMLDivElement>(null);
 
   const activeClass = enrolledClasses.find(c => c.id === selectedClassId) || enrolledClasses[0];
 
@@ -90,7 +184,16 @@ export const PaymentCardView: React.FC<PaymentCardViewProps> = ({
   const qrSvg = generateQRCodeSvg(student.studentNumber, 54);
   const barcodeSvg = generateBarcodeSvg(student.studentNumber, 160, 22);
 
-  const handlePrint = () => window.print();
+  const handlePrint = () => {
+    if (!printRef.current) {
+      window.print();
+      return;
+    }
+    printInIsolatedFrame(
+      printRef.current,
+      tab === 'monthly' ? MONTHLY_ISOLATED_PRINT_STYLES : YEARLY_ISOLATED_PRINT_STYLES,
+    );
+  };
   const handleToggle = (classId: string, monthLabel: string) => {
     if (!isAdmin || !onStampPayment) return;
     onStampPayment(student.id, classId, monthLabel);
@@ -181,6 +284,7 @@ export const PaymentCardView: React.FC<PaymentCardViewProps> = ({
           {/* MONTHLY CARD */}
           {tab === 'monthly' && activeClass && (
             <div
+              ref={printRef}
               className="pay-print-area pay-monthly relative overflow-hidden rounded-[3mm] shadow-2xl text-slate-900 bg-white"
               style={{
                 width: '85.6mm',
@@ -259,6 +363,7 @@ export const PaymentCardView: React.FC<PaymentCardViewProps> = ({
           {/* 12-MONTH GRID */}
           {tab === 'yearly' && (
             <div
+              ref={printRef}
               className="pay-print-area pay-yearly bg-white text-slate-900 rounded-2xl shadow-2xl overflow-hidden"
               style={{
                 width: '198mm',
@@ -322,7 +427,7 @@ export const PaymentCardView: React.FC<PaymentCardViewProps> = ({
                                 isAdmin && onStampPayment ? (
                                   <button
                                     onClick={() => handleToggle(cls.id, `${m} ${currentYear}`)}
-                                    className="no-print w-full h-full flex flex-col items-center justify-center leading-tight hover:bg-rose-100"
+                                    className="w-full h-full flex flex-col items-center justify-center leading-tight hover:bg-rose-100"
                                     title="Click to mark UNPAID"
                                   >
                                     <CheckCircle2 className="w-3 h-3 text-emerald-600" />
@@ -335,11 +440,14 @@ export const PaymentCardView: React.FC<PaymentCardViewProps> = ({
                                   </div>
                                 )
                               ) : isAdmin && onStampPayment ? (
-                                <button
-                                  onClick={() => handleToggle(cls.id, `${m} ${currentYear}`)}
-                                  className="no-print w-full h-full text-[8px] font-black text-slate-400 hover:bg-emerald-100 hover:text-emerald-700 uppercase tracking-widest"
-                                  title="Click to mark PAID"
-                                >Mark</button>
+                                <>
+                                  <button
+                                    onClick={() => handleToggle(cls.id, `${m} ${currentYear}`)}
+                                    className="no-print w-full h-full text-[8px] font-black text-slate-400 hover:bg-emerald-100 hover:text-emerald-700 uppercase tracking-widest"
+                                    title="Click to mark PAID"
+                                  >Mark</button>
+                                  <span className="pay-print-dash hidden text-[8px] font-black text-slate-300">—</span>
+                                </>
                               ) : (
                                 <span className="text-[8px] font-black text-slate-300">—</span>
                               )}
