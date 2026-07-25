@@ -1737,64 +1737,240 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       )}
 
       {/* TAB 5: OVERDUE PAYMENTS DIRECTORY */}
-      {activeTab === 'payments' && (
-        <div className={`p-6 rounded-3xl border space-y-4 ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
-          <div className="space-y-1">
-            <h3 className="text-lg font-black text-rose-600 flex items-center gap-2">
-              <AlertOctagon className="w-5 h-5" />
-              Overdue & Pending Payments Directory
-            </h3>
-            <p className="text-xs text-slate-500">
-              Students with unpaid monthly tuition fees. Click "Stamp Fee" to process payments directly onto their 12-month card.
-            </p>
-          </div>
+      {activeTab === 'payments' && (() => {
+        const paidPayments = payments.filter(p => p.status === 'Paid');
+        const totalCollected = paidPayments.reduce((s, p) => s + (p.amount || 0), 0);
+        const totalOverdue = overduePayments.reduce((s, p) => s + (p.amount || 0), 0);
+        const pendingPayments = payments.filter(p => p.status === 'Pending');
+        const totalPending = pendingPayments.reduce((s, p) => s + (p.amount || 0), 0);
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b font-extrabold uppercase text-slate-500">
-                  <th className="p-3">Student Name</th>
-                  <th className="p-3">Class Title</th>
-                  <th className="p-3">Overdue Month</th>
-                  <th className="p-3">Fee Amount</th>
-                  <th className="p-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-                {overduePayments.map(p => {
-                  const targetStu = students.find(s => s.id === p.studentId);
-                  return (
-                    <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                      <td className="p-3 font-bold text-slate-900 dark:text-white">
-                        {p.studentName}
-                      </td>
-                      <td className="p-3 font-semibold">{p.className}</td>
-                      <td className="p-3 font-extrabold text-rose-600">{p.month}</td>
-                      <td className="p-3 font-black text-slate-900 dark:text-white">Rs. {p.amount.toLocaleString()}</td>
-                      <td className="p-3 text-right space-x-2">
-                        <button
-                          onClick={() => onStampPayment(p.studentId, p.classId, p.month)}
-                          className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-3 py-1 rounded text-xs"
-                        >
-                          Stamp Fee
-                        </button>
-                        {targetStu && (
-                          <button
-                            onClick={() => onOpenPaymentCard(targetStu)}
-                            className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-2.5 py-1 rounded text-xs"
-                          >
-                            Card View
-                          </button>
+        // Per-class income breakdown
+        const perClass: Record<string, { className: string; paidCount: number; amount: number }> = {};
+        paidPayments.forEach(p => {
+          if (!perClass[p.classId]) perClass[p.classId] = { className: p.className, paidCount: 0, amount: 0 };
+          perClass[p.classId].paidCount += 1;
+          perClass[p.classId].amount += p.amount || 0;
+        });
+        const perClassRows = Object.values(perClass).sort((a, b) => b.amount - a.amount);
+
+        // Per-month income breakdown
+        const perMonth: Record<string, number> = {};
+        paidPayments.forEach(p => {
+          const key = p.month || 'Unknown';
+          perMonth[key] = (perMonth[key] || 0) + (p.amount || 0);
+        });
+        const perMonthRows = Object.entries(perMonth).sort((a, b) => b[1] - a[1]);
+
+        const exportCsv = () => {
+          const header = ['Receipt', 'Date', 'Student', 'Class', 'Month', 'Amount', 'Method', 'Status'];
+          const rows = payments.map(p => [
+            p.receiptNumber, p.paidDate, p.studentName, p.className,
+            p.month, p.amount, p.paymentMethod, p.status,
+          ]);
+          const csv = [header, ...rows]
+            .map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `income-report-${new Date().toISOString().split('T')[0]}.csv`;
+          a.click();
+          URL.revokeObjectURL(url);
+        };
+
+        return (
+          <div className="space-y-6">
+            {/* INCOME REPORT SUMMARY */}
+            <div className={`p-6 rounded-3xl border space-y-4 ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+              <div className="flex items-start justify-between flex-wrap gap-3">
+                <div>
+                  <h3 className="text-lg font-black text-emerald-600 flex items-center gap-2">
+                    <CreditCard className="w-5 h-5" />
+                    Income Report & Full Payment Ledger
+                  </h3>
+                  <p className="text-xs text-slate-500">Live totals from all recorded payments across every class and month.</p>
+                </div>
+                <button
+                  onClick={exportCsv}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-4 py-2 rounded-xl text-xs shadow"
+                >
+                  ⬇ Export Full CSV
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Total Collected</p>
+                  <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">Rs. {totalCollected.toLocaleString()}</p>
+                  <p className="text-[10px] font-bold text-slate-500 mt-1">{paidPayments.length} paid receipts</p>
+                </div>
+                <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-amber-500">Pending</p>
+                  <p className="text-2xl font-black text-amber-600 dark:text-amber-400">Rs. {totalPending.toLocaleString()}</p>
+                  <p className="text-[10px] font-bold text-slate-500 mt-1">{pendingPayments.length} pending items</p>
+                </div>
+                <div className="rounded-2xl border border-rose-500/30 bg-rose-500/10 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-rose-500">Overdue</p>
+                  <p className="text-2xl font-black text-rose-600 dark:text-rose-400">Rs. {totalOverdue.toLocaleString()}</p>
+                  <p className="text-[10px] font-bold text-slate-500 mt-1">{overduePayments.length} overdue items</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className={`rounded-2xl border p-4 ${darkMode ? 'border-slate-800 bg-slate-950/50' : 'border-slate-200 bg-slate-50'}`}>
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Income by Class</p>
+                  <div className="max-h-56 overflow-y-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="text-left text-[10px] uppercase font-black text-slate-500 border-b border-slate-300 dark:border-slate-700">
+                          <th className="py-1">Class</th>
+                          <th className="py-1 text-right">Receipts</th>
+                          <th className="py-1 text-right">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                        {perClassRows.map(r => (
+                          <tr key={r.className}>
+                            <td className="py-1.5 font-bold text-slate-900 dark:text-white truncate">{r.className}</td>
+                            <td className="py-1.5 text-right font-mono">{r.paidCount}</td>
+                            <td className="py-1.5 text-right font-black text-emerald-600 dark:text-emerald-400">Rs. {r.amount.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                        {perClassRows.length === 0 && (
+                          <tr><td colSpan={3} className="py-3 text-center text-slate-500 font-bold">No payments recorded yet.</td></tr>
                         )}
-                      </td>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className={`rounded-2xl border p-4 ${darkMode ? 'border-slate-800 bg-slate-950/50' : 'border-slate-200 bg-slate-50'}`}>
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Income by Month</p>
+                  <div className="max-h-56 overflow-y-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="text-left text-[10px] uppercase font-black text-slate-500 border-b border-slate-300 dark:border-slate-700">
+                          <th className="py-1">Month</th>
+                          <th className="py-1 text-right">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                        {perMonthRows.map(([m, amt]) => (
+                          <tr key={m}>
+                            <td className="py-1.5 font-bold text-slate-900 dark:text-white">{m}</td>
+                            <td className="py-1.5 text-right font-black text-emerald-600 dark:text-emerald-400">Rs. {amt.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                        {perMonthRows.length === 0 && (
+                          <tr><td colSpan={2} className="py-3 text-center text-slate-500 font-bold">No monthly income yet.</td></tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Full ledger */}
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Full Payment Ledger ({payments.length})</p>
+                <div className="overflow-x-auto max-h-80 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800">
+                  <table className="w-full text-xs">
+                    <thead className="sticky top-0 bg-slate-100 dark:bg-slate-800">
+                      <tr className="text-left font-black uppercase text-[10px] text-slate-600 dark:text-slate-300">
+                        <th className="p-2">Receipt</th>
+                        <th className="p-2">Date</th>
+                        <th className="p-2">Student</th>
+                        <th className="p-2">Class</th>
+                        <th className="p-2">Month</th>
+                        <th className="p-2 text-right">Amount</th>
+                        <th className="p-2">Method</th>
+                        <th className="p-2">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                      {payments.map(p => (
+                        <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                          <td className="p-2 font-mono">{p.receiptNumber}</td>
+                          <td className="p-2">{p.paidDate}</td>
+                          <td className="p-2 font-bold text-slate-900 dark:text-white">{p.studentName}</td>
+                          <td className="p-2">{p.className}</td>
+                          <td className="p-2">{p.month}</td>
+                          <td className="p-2 text-right font-black">Rs. {p.amount.toLocaleString()}</td>
+                          <td className="p-2">{p.paymentMethod}</td>
+                          <td className={`p-2 font-black ${p.status === 'Paid' ? 'text-emerald-600' : p.status === 'Overdue' ? 'text-rose-600' : 'text-amber-600'}`}>{p.status}</td>
+                        </tr>
+                      ))}
+                      {payments.length === 0 && (
+                        <tr><td colSpan={8} className="p-4 text-center text-slate-500 font-bold">No payments in the system yet.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* OVERDUE DIRECTORY */}
+            <div className={`p-6 rounded-3xl border space-y-4 ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
+              <div className="space-y-1">
+                <h3 className="text-lg font-black text-rose-600 flex items-center gap-2">
+                  <AlertOctagon className="w-5 h-5" />
+                  Overdue & Pending Payments Directory
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Students with unpaid monthly tuition fees. Click "Stamp Fee" to process payments directly onto their 12-month card.
+                </p>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b font-extrabold uppercase text-slate-500">
+                      <th className="p-3">Student Name</th>
+                      <th className="p-3">Class Title</th>
+                      <th className="p-3">Overdue Month</th>
+                      <th className="p-3">Fee Amount</th>
+                      <th className="p-3 text-right">Actions</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                    {overduePayments.map(p => {
+                      const targetStu = students.find(s => s.id === p.studentId);
+                      return (
+                        <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                          <td className="p-3 font-bold text-slate-900 dark:text-white">{p.studentName}</td>
+                          <td className="p-3 font-semibold">{p.className}</td>
+                          <td className="p-3 font-extrabold text-rose-600">{p.month}</td>
+                          <td className="p-3 font-black text-slate-900 dark:text-white">Rs. {p.amount.toLocaleString()}</td>
+                          <td className="p-3 text-right space-x-2">
+                            <button
+                              onClick={() => onStampPayment(p.studentId, p.classId, p.month)}
+                              className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-3 py-1 rounded text-xs"
+                            >
+                              Stamp Fee
+                            </button>
+                            {targetStu && (
+                              <button
+                                onClick={() => onOpenPaymentCard(targetStu)}
+                                className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-2.5 py-1 rounded text-xs"
+                              >
+                                Card View
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {overduePayments.length === 0 && (
+                      <tr><td colSpan={5} className="p-4 text-center text-slate-500 font-bold">No overdue payments. All caught up!</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* TAB 6: BANNER NOTICES & BROADCASTS */}
       {activeTab === 'notices' && (
