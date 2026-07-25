@@ -29,32 +29,40 @@ const PRINT_STYLES = `
   html, body {
     background: #ffffff !important;
     color: #0f172a !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    margin: 0 !important; padding: 0 !important;
+    height: auto !important;
+    overflow: hidden !important;
   }
   body * { visibility: hidden !important; }
   .pay-print-area, .pay-print-area * { visibility: visible !important; }
   .pay-print-area {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    position: fixed !important;
+    left: 0 !important; top: 0 !important;
+    margin: 0 !important; padding: 0 !important;
     background: #ffffff !important;
     color: #0f172a !important;
     box-shadow: none !important;
     border: none !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
   .no-print { display: none !important; }
   * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 }
-@media print and (min-width: 0) {
+@media print {
+  /* Monthly card fits a small CR80-ish page */
   .pay-print-area.pay-monthly { width: 85.6mm !important; height: 53.98mm !important; }
-  .pay-print-area.pay-yearly  { width: 198mm !important; }
+  /* Yearly grid needs A4 landscape */
+  .pay-print-area.pay-yearly  { width: 277mm !important; height: auto !important; }
 }
+@page pay-cr80    { size: 90mm 58mm; margin: 2mm; }
+@page pay-a4-land { size: A4 landscape; margin: 6mm; }
+.pay-print-area.pay-monthly { page: pay-cr80; }
+.pay-print-area.pay-yearly  { page: pay-a4-land; }
 `;
 
 export const PaymentCardView: React.FC<PaymentCardViewProps> = ({

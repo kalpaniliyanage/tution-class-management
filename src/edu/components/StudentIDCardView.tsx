@@ -26,18 +26,37 @@ interface StudentIDCardViewProps {
 const PRINT_STYLES = `
 @media print {
   @page { size: 90mm 58mm; margin: 2mm; }
-  html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+  html, body {
+    background: #ffffff !important;
+    margin: 0 !important; padding: 0 !important;
+    width: 90mm !important; height: auto !important;
+    overflow: hidden !important;
+  }
   body * { visibility: hidden !important; }
   .id-print-area, .id-print-area * { visibility: visible !important; }
   .id-print-area {
-    position: absolute !important;
+    position: fixed !important;
     left: 0 !important; top: 0 !important;
     width: 85.6mm !important; height: 53.98mm !important;
+    margin: 0 !important;
     box-shadow: none !important;
-    page-break-after: always;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
-  .id-print-area + .id-print-area { margin-top: 4mm !important; }
+  /* When there are two cards (front + back), put the second on a new page */
+  .id-print-area + .id-print-area {
+    position: static !important;
+    display: block !important;
+    page-break-before: always !important;
+    break-before: page !important;
+    margin: 0 !important;
+  }
   .no-print { display: none !important; }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
 }
 `;
 
