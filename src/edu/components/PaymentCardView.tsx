@@ -35,6 +35,32 @@ const PRINT_STYLES = `
     overflow: hidden !important;
   }
   body * { visibility: hidden !important; }
+  body:has(.pay-print-area) > div {
+    display: block !important;
+    min-height: 0 !important;
+    height: 0 !important;
+    overflow: visible !important;
+  }
+  body:has(.pay-print-area) header,
+  body:has(.pay-print-area) main,
+  body:has(.pay-print-area) footer {
+    display: none !important;
+  }
+  .print-modal-root,
+  .print-modal-panel,
+  .print-modal-stage {
+    position: static !important;
+    display: block !important;
+    width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
   .pay-print-area, .pay-print-area * { visibility: visible !important; }
   .pay-print-area {
     position: fixed !important;
@@ -208,13 +234,13 @@ export const PaymentCardView: React.FC<PaymentCardViewProps> = ({
   return (
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto cursor-pointer"
+      className="print-modal-root fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto cursor-pointer"
     >
       <style>{PRINT_STYLES}</style>
 
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`relative w-full max-w-5xl rounded-3xl border shadow-2xl overflow-hidden my-8 cursor-default ${chromeSurface}`}
+        className={`print-modal-panel relative w-full max-w-5xl rounded-3xl border shadow-2xl overflow-hidden my-8 cursor-default ${chromeSurface}`}
       >
         {/* Top Controls */}
         <div className="no-print bg-slate-950 text-white px-6 py-3 flex items-center justify-between border-b border-slate-800 flex-wrap gap-3">
@@ -279,7 +305,7 @@ export const PaymentCardView: React.FC<PaymentCardViewProps> = ({
         </div>
 
         {/* Stage */}
-        <div className={`p-6 sm:p-8 flex flex-col items-center gap-4 ${stageSurface}`}>
+        <div className={`print-modal-stage p-6 sm:p-8 flex flex-col items-center gap-4 ${stageSurface}`}>
 
           {/* MONTHLY CARD */}
           {tab === 'monthly' && activeClass && (

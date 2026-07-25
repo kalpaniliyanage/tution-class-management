@@ -33,6 +33,32 @@ const PRINT_STYLES = `
     overflow: hidden !important;
   }
   body * { visibility: hidden !important; }
+  body:has(.id-print-area) > div {
+    display: block !important;
+    min-height: 0 !important;
+    height: 0 !important;
+    overflow: visible !important;
+  }
+  body:has(.id-print-area) header,
+  body:has(.id-print-area) main,
+  body:has(.id-print-area) footer {
+    display: none !important;
+  }
+  .print-modal-root,
+  .print-modal-panel,
+  .print-modal-stage {
+    position: static !important;
+    display: block !important;
+    width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
   .id-print-sheet, .id-print-sheet * { visibility: visible !important; }
   .id-print-area, .id-print-area * { visibility: visible !important; }
   .id-print-sheet {
@@ -183,13 +209,13 @@ export const StudentIDCardView: React.FC<StudentIDCardViewProps> = ({
   return (
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto cursor-pointer"
+      className="print-modal-root fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto cursor-pointer"
     >
       <style>{PRINT_STYLES}</style>
 
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`relative w-full max-w-3xl rounded-3xl border shadow-2xl overflow-hidden my-6 cursor-default ${
+        className={`print-modal-panel relative w-full max-w-3xl rounded-3xl border shadow-2xl overflow-hidden my-6 cursor-default ${
           darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'
         }`}
       >
@@ -236,7 +262,7 @@ export const StudentIDCardView: React.FC<StudentIDCardViewProps> = ({
         </div>
 
         {/* CARD STAGE */}
-        <div className="p-6 sm:p-8 bg-slate-100 dark:bg-slate-950 flex flex-col items-center gap-6">
+        <div className="print-modal-stage p-6 sm:p-8 bg-slate-100 dark:bg-slate-950 flex flex-col items-center gap-6">
 
           {/* ============================================================ */}
           {/* TAB 1 — DIGITAL ID (real CR80 size)                          */}
