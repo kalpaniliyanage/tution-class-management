@@ -29,8 +29,8 @@ const PRINT_STYLES = `
   html, body {
     background: #ffffff !important;
     margin: 0 !important; padding: 0 !important;
-    width: 0 !important; height: 0 !important; min-height: 0 !important;
-    overflow: visible !important;
+    width: 297mm !important; height: 210mm !important;
+    overflow: hidden !important;
   }
   body * { visibility: hidden !important; }
   body > div {
