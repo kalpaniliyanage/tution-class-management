@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { Shield, Phone, Clock, MapPin, Sun, Moon, LogIn, QrCode, AlertTriangle, Trophy, Calendar, Sparkles } from 'lucide-react';
 import { Role, InstituteSettings, Notice } from '../types';

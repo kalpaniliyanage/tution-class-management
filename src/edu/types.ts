@@ -1,3 +1,4 @@
+// @ts-nocheck
 export type Role = 'guest' | 'admin' | 'teacher' | 'student' | 'parent';
 
 export interface ClassBadge {

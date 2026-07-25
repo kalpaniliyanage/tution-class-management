@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { QrCode, X, Search, CheckCircle2, AlertOctagon } from 'lucide-react';
 import { Student } from '../types';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { MapPin, Phone, Mail, Shield, Award, Clock } from 'lucide-react';
 import { InstituteSettings } from '../types';

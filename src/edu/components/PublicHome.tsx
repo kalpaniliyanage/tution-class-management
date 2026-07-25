@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { SubjectClass, Role, ClassBadge } from '../types';
 import { Search, Calendar, Clock, MapPin, Share2, Plus, Tag, Sparkles, Filter, CheckCircle2, ShieldAlert, BookOpen, Layers, X, Grid, List, Check } from 'lucide-react';

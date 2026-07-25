@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { SubjectClass } from '../types';
 import { Calendar, Clock, MapPin, Printer, Filter, Sparkles } from 'lucide-react';

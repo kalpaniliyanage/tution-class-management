@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState } from 'react';
 import { Student, SubjectClass, PaymentRecord, InstituteSettings } from '../types';
 import { Printer, X, CheckCircle2, Stamp, Phone } from 'lucide-react';

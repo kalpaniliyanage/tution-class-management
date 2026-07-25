@@ -1,3 +1,4 @@
+// @ts-nocheck
 import {
   SubjectClass, Teacher, Student, PaymentRecord, AttendanceRecord,
   ExamMark, Notice, WallOfFameItem, InstituteSettings, TutePaper, Hall

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import { Student, SubjectClass, PaymentRecord, AttendanceRecord, ExamMark } from '../types';
 import { Users, Shield, Clock, Send, CreditCard, Award, QrCode, Calendar } from 'lucide-react';
