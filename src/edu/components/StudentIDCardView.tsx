@@ -33,15 +33,15 @@ const PRINT_STYLES = `
     overflow: hidden !important;
   }
   body * { visibility: hidden !important; }
-  body:has(.id-print-area) > div {
+  body > div {
     display: block !important;
     min-height: 0 !important;
     height: 0 !important;
     overflow: visible !important;
   }
-  body:has(.id-print-area) header,
-  body:has(.id-print-area) main,
-  body:has(.id-print-area) footer {
+  body > div > header,
+  body > div > main,
+  body > div > footer {
     display: none !important;
   }
   .print-modal-root,
