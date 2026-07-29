@@ -76,21 +76,24 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({
   return (
     <div className="space-y-6 pb-12">
       {/* Teacher Portal Header */}
-      <div className={`p-6 rounded-2xl border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 shadow-sm ${darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
+      <div className={`relative overflow-hidden lk-motif lk-rise p-6 rounded-3xl border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 shadow-md ${darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
+        <div className="lk-flagline absolute top-0 left-0 right-0" />
         <div className="flex items-center gap-4">
           <img
             src={teacherPhoto}
             alt="Teacher"
-            className="w-14 h-14 rounded-2xl object-cover border-2 border-purple-500 shadow-md shrink-0"
+            className="w-14 h-14 rounded-2xl object-cover border-2 border-purple-500 shadow-md shrink-0 lk-float"
           />
           <div>
             <span className="bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 text-[10px] font-black px-2.5 py-0.5 rounded uppercase tracking-wider">
               FACULTY LECTURER PORTAL
             </span>
-            <h2 className="text-xl font-black">{teacherName}</h2>
+            <h2 className="text-xl font-black lk-gradient-text">{teacherName}</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">Senior Lecturer in {teacherSubject}</p>
+            <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400">ගුරු පිවිසුම • Faculty Workspace</p>
           </div>
         </div>
+
 
         <div className="flex items-center gap-2 overflow-x-auto text-xs font-bold">
           <button
