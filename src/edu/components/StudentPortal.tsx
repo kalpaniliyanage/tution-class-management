@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useState } from 'react';
-import { Student, SubjectClass, PaymentRecord, ExamMark, TutePaper } from '../types';
+import { Student, SubjectClass, PaymentRecord, ExamMark, TutePaper, AttendanceRecord } from '../types';
 import { GraduationCap, CreditCard, QrCode, Download, Award, Calendar, CheckCircle2, Clock } from 'lucide-react';
 
 interface StudentPortalProps {
@@ -9,6 +9,7 @@ interface StudentPortalProps {
   payments: PaymentRecord[];
   exams: ExamMark[];
   tutes: TutePaper[];
+  attendance?: AttendanceRecord[];
   darkMode: boolean;
   onOpenPaymentCard: () => void;
   onOpenIDCard: () => void;
@@ -20,10 +21,20 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
   payments,
   exams,
   tutes,
+  attendance = [],
   darkMode,
   onOpenPaymentCard,
   onOpenIDCard
 }) => {
+  // A student receives PDFs only for classes they actually participated in
+  // (attendance marked Present/Late), falling back to their enrolled classes.
+  const attendedClassIds = new Set(
+    attendance.filter(a => a.status === 'Present' || a.status === 'Late').map(a => a.classId)
+  );
+  enrolledClasses.forEach(c => attendedClassIds.add(c.id));
+
+  const myTutes = tutes.filter(t => attendedClassIds.has(t.classId));
+
   return (
     <div className="space-y-6 pb-12">
       {/* Student Welcome Header */}
@@ -125,21 +136,32 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
               Class Model Papers & Tutes (PDF Downloads)
             </h3>
 
+            <p className="text-[11px] text-slate-500">
+              Showing materials for the {attendedClassIds.size} class(es) you participated in.
+            </p>
+
+            {myTutes.length === 0 && (
+              <p className="text-xs text-slate-500">No PDFs released for your classes yet.</p>
+            )}
+
             <div className="space-y-3 text-xs">
-              {tutes.map(tut => (
+              {myTutes.map(tut => (
                 <div key={tut.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950">
                   <div className="space-y-0.5">
                     <span className="bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 text-[9px] font-bold px-2 py-0.5 rounded uppercase">
                       {tut.type}
                     </span>
                     <p className="font-bold text-slate-900 dark:text-white text-sm">{tut.title}</p>
-                    <p className="text-[10px] text-slate-400">Issued Date: {tut.issuedDate}</p>
+                    <p className="text-[10px] text-slate-400">
+                      {enrolledClasses.find(c => c.id === tut.classId)?.name || tut.className || 'Class material'} • Issued: {tut.issuedDate}
+                    </p>
                   </div>
 
                   <a
                     href={tut.pdfUrl || '#'}
                     target="_blank"
                     rel="noreferrer"
+                    download={tut.fileName || `${tut.title}.pdf`}
                     className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition"
                   >
                     <Download className="w-3.5 h-3.5" />

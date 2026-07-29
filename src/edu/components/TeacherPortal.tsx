@@ -1,7 +1,8 @@
 // @ts-nocheck
 import React, { useState } from 'react';
-import { SubjectClass, AttendanceRecord, ExamMark, Notice, Student, Teacher } from '../types';
+import { SubjectClass, AttendanceRecord, ExamMark, Notice, Student, Teacher, TutePaper } from '../types';
 import { UserCheck, Calendar, Clock, MapPin, CheckCircle2, AlertTriangle, Send, FileText, Award } from 'lucide-react';
+import { MaterialsUploader } from './MaterialsUploader';
 
 interface TeacherPortalProps {
   activeTeacher?: Teacher;
@@ -9,7 +10,10 @@ interface TeacherPortalProps {
   students: Student[];
   attendance: AttendanceRecord[];
   exams: ExamMark[];
+  tutes?: TutePaper[];
   darkMode: boolean;
+  onAddTute?: (tute: TutePaper) => void;
+  onDeleteTute?: (id: string) => void;
   onMarkAttendance: (studentId: string, classId: string, status: 'Present' | 'Absent' | 'Late') => void;
   onPostNotice: (notice: Notice) => void;
   onRecordMark: (mark: ExamMark) => void;
@@ -21,12 +25,15 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({
   students,
   attendance,
   exams,
+  tutes = [],
   darkMode,
+  onAddTute,
+  onDeleteTute,
   onMarkAttendance,
   onPostNotice,
   onRecordMark
 }) => {
-  const [activeTab, setActiveTab] = useState<'schedule' | 'attendance' | 'marks' | 'notices'>('schedule');
+  const [activeTab, setActiveTab] = useState<'schedule' | 'attendance' | 'marks' | 'materials' | 'notices'>('schedule');
 
   // Teacher Identity Defaults
   const teacherName = activeTeacher ? `${activeTeacher.title} ${activeTeacher.name}` : 'Mr. Dinesh Liyanage';
@@ -99,6 +106,12 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({
             Class Registers
           </button>
           <button
+            onClick={() => setActiveTab('materials')}
+            className={`px-3 py-2 rounded-xl transition ${activeTab === 'materials' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
+          >
+            Tutes & Papers
+          </button>
+          <button
             onClick={() => setActiveTab('notices')}
             className={`px-3 py-2 rounded-xl transition ${activeTab === 'notices' ? 'bg-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
           >
@@ -168,6 +181,17 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({
             ))}
           </div>
         </div>
+      )}
+
+      {activeTab === 'materials' && (
+        <MaterialsUploader
+          classes={displayClasses.length > 0 ? displayClasses : classes}
+          tutes={tutes}
+          darkMode={darkMode}
+          uploadedBy={teacherName}
+          onAddTute={t => onAddTute && onAddTute(t)}
+          onDeleteTute={id => onDeleteTute && onDeleteTute(id)}
+        />
       )}
 
       {activeTab === 'notices' && (

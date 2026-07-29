@@ -50,6 +50,7 @@ export interface Teacher {
   email: string;
   availableDays: string[];
   salaryScale: number;
+  accessCode?: string; // teacher portal PIN
 }
 
 export interface Student {
@@ -75,6 +76,8 @@ export interface Student {
   pin: string;
   lastAttendanceDate?: string;
   daysAbsentCount?: number;
+  accessCode?: string;          // student portal login code
+  feeConcession?: FeeConcession; // economic-hardship grace period
 }
 
 export interface PaymentRecord {
@@ -183,8 +186,39 @@ export interface TutePaper {
   title: string;
   classId: string;
   type: 'Paper' | 'Tute' | 'Revision Note';
+  className?: string;
   issuedDate: string;
   pdfUrl?: string;
+  fileName?: string;
+  uploadedBy?: string;
   issuedToAll: boolean;
   statusMap: Record<string, 'Issued' | 'Not Issued'>; // studentId -> status
+}
+export interface FeeConcession {
+  active: boolean;
+  reason: string;          // economic hardship note
+  graceUntil: string;      // extended payment due date (YYYY-MM-DD)
+  approvedBy?: string;
+  grantedDate?: string;
+}
+
+export interface FreeCardAward {
+  id: string;
+  studentId: string;
+  studentName: string;
+  studentNumber: string;
+  photo?: string;
+  grade: string;
+  stream?: string;
+  classId?: string;
+  className?: string;
+  examTitle: string;
+  marks: number;
+  maxMarks: number;
+  gradeScore?: string;
+  month: string;           // e.g. "March 2026"
+  awardedDate: string;
+  parentPhone?: string;
+  smsSent: boolean;
+  smsMessage?: string;
 }

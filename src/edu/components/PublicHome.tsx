@@ -126,38 +126,92 @@ export const PublicHome: React.FC<PublicHomeProps> = ({
 
   return (
     <div className="space-y-8 pb-12">
-      {/* Hero Welcome Banner */}
-      <section className={`relative overflow-hidden rounded-2xl p-6 sm:p-10 border ${darkMode ? 'bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-slate-800 text-white' : 'bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 border-blue-800 text-white'} shadow-xl`}>
-        <div className="relative z-10 max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-2 bg-amber-400/20 text-amber-300 border border-amber-400/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Sri Lanka's #1 Smart Tuition Institute</span>
+      {/* Hero Welcome Banner — animated */}
+      <section className="relative overflow-hidden rounded-3xl border border-amber-400/20 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white shadow-2xl">
+        {/* Animated colour orbs (saffron / maroon / green — Sri Lankan flag palette) */}
+        <div className="pointer-events-none absolute -top-24 -left-16 w-72 h-72 rounded-full bg-amber-500/25 blur-3xl lk-orb" />
+        <div className="pointer-events-none absolute -bottom-28 right-10 w-80 h-80 rounded-full bg-rose-700/25 blur-3xl lk-orb" style={{ animationDelay: '3s' }} />
+        <div className="pointer-events-none absolute top-10 right-1/3 w-64 h-64 rounded-full bg-emerald-500/20 blur-3xl lk-orb" style={{ animationDelay: '6s' }} />
+        {/* Subtle grid texture */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.07]"
+          style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)', backgroundSize: '38px 38px' }}
+        />
+
+        <div className="relative z-10 grid lg:grid-cols-[1.4fr_1fr] gap-8 p-6 sm:p-10">
+          <div className="space-y-5">
+            <div className="lk-rise inline-flex items-center gap-2 bg-amber-400/15 text-amber-300 border border-amber-400/40 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider lk-pulse-ring">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Sri Lanka's #1 Smart Tuition Institute</span>
+            </div>
+
+            <h2 className="lk-rise text-3xl sm:text-5xl font-black tracking-tight leading-[1.05]" style={{ animationDelay: '.08s' }}>
+              Learn Smart.{' '}
+              <span className="lk-gradient-text bg-clip-text text-transparent bg-[linear-gradient(90deg,#fbbf24,#f97316,#e11d48,#10b981,#fbbf24)]">
+                Achieve Big.
+              </span>
+              <br />
+              <span className="text-slate-200 text-2xl sm:text-3xl">Grade 6 to A/L — all in one place.</span>
+            </h2>
+
+            <p className="lk-rise text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl" style={{ animationDelay: '.16s' }}>
+              Printable 12-month payment stamp cards, student QR identity, gate security check-in,
+              class leaflets, tutes and past papers — built for Sri Lankan tuition institutes.
+            </p>
+
+            <div className="lk-rise flex flex-wrap items-center gap-3 pt-1" style={{ animationDelay: '.24s' }}>
+              {[
+                '✨ Grade 6 – 11 Core & Aesthetics',
+                '📘 2028 A/L (Theory Only)',
+                '⚡ 2027 A/L (Theory, Revision & Paper)'
+              ].map(chip => (
+                <div key={chip} className="lk-lift bg-white/10 backdrop-blur border border-white/20 px-3 py-1.5 rounded-xl text-xs font-semibold">
+                  {chip}
+                </div>
+              ))}
+              <div className="lk-lift bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-3 py-1.5 rounded-xl text-xs font-bold">
+                🏷️ Dynamic Badge Management Active
+              </div>
+            </div>
           </div>
 
-          <h2 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
-            Comprehensive Tuition Institute Management System (SIMS)
-          </h2>
+          {/* Floating live stat cards */}
+          <div className="relative grid grid-cols-2 gap-3 content-center">
+            {[
+              { label: 'Active Classes', value: classes.length, tone: 'from-amber-400/25 to-amber-600/10 border-amber-400/30 text-amber-200', delay: '0s' },
+              { label: 'Teachers', value: new Set(classes.map(c => c.teacherName)).size, tone: 'from-emerald-400/25 to-emerald-600/10 border-emerald-400/30 text-emerald-200', delay: '1.2s' },
+              { label: 'Halls', value: new Set(classes.map(c => c.hallName)).size, tone: 'from-sky-400/25 to-sky-600/10 border-sky-400/30 text-sky-200', delay: '2.4s' },
+              { label: 'Streams', value: new Set(classes.map(c => c.stream)).size, tone: 'from-rose-400/25 to-rose-600/10 border-rose-400/30 text-rose-200', delay: '0.6s' }
+            ].map(stat => (
+              <div
+                key={stat.label}
+                className={`lk-float lk-shine rounded-2xl border bg-gradient-to-br ${stat.tone} backdrop-blur px-4 py-5 text-center`}
+                style={{ animationDelay: stat.delay }}
+              >
+                <p className="text-3xl font-black text-white">{stat.value}</p>
+                <p className="text-[10px] uppercase tracking-widest font-bold mt-1">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-            Grade 6 to Grade 13 (O/L & A/L) Subject Streams with Printable 12-Month Payment Stamp Cards, Student QR Identity, Entrance Gate Security, and Class Leaflet Posters.
-          </p>
-
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            <div className="bg-white/10 backdrop-blur border border-white/20 px-3 py-1.5 rounded-lg text-xs font-semibold">
-              ✨ Grade 6 – 11 Core & Aesthetics
-            </div>
-            <div className="bg-white/10 backdrop-blur border border-white/20 px-3 py-1.5 rounded-lg text-xs font-semibold">
-              📘 2028 A/L (Theory Only)
-            </div>
-            <div className="bg-white/10 backdrop-blur border border-white/20 px-3 py-1.5 rounded-lg text-xs font-semibold">
-              ⚡ 2027 A/L (Theory, Revision & Paper)
-            </div>
-            <div className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-3 py-1.5 rounded-lg text-xs font-bold">
-              🏷️ Dynamic Badge Management Active
-            </div>
+        {/* Scrolling ticker */}
+        <div className="relative z-10 border-t border-white/10 bg-black/25 py-2 overflow-hidden">
+          <div className="lk-marquee flex w-max gap-10 whitespace-nowrap text-[11px] font-bold uppercase tracking-widest text-amber-200/90">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <React.Fragment key={i}>
+                <span>🎓 Island-wide A/L & O/L Classes</span>
+                <span>📲 SMS Alerts for Parents</span>
+                <span>🏆 Wall of Fame Achievers</span>
+                <span>💳 Free Card for Top Rankers</span>
+                <span>📄 Tutes & Past Papers Online</span>
+                <span>🔐 QR Gate Security</span>
+              </React.Fragment>
+            ))}
           </div>
         </div>
       </section>
+
 
       {/* Main Filter Section */}
       <section className="space-y-4">
