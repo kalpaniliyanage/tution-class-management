@@ -1,6 +1,7 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { Role, Student, Teacher } from '../types';
+import { ADMIN_CODES, teacherCode, studentCode, parentCode, matches } from '../utils/auth';
 import { LogIn, Shield, UserCheck, GraduationCap, Users, X, Sparkles, Key, QrCode, Lock, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface LoginModalProps {
@@ -36,20 +37,36 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     setLoginError('');
 
     if (selectedRoleOption === 'admin') {
-      if (passcode && passcode.toLowerCase() !== 'admin' && passcode !== '1234' && passcode !== '9999') {
-        setLoginError('Invalid Administrator Passcode. (Try demo passcode: "admin" or "1234")');
+      if (!passcode.trim()) {
+        setLoginError('Administrator passcode is required to open this portal.');
+        return;
+      }
+      if (!ADMIN_CODES.some(c => matches(passcode, c))) {
+        setLoginError('Invalid Administrator Passcode. Access denied.');
         return;
       }
       onSelectRole('admin', 'System Administrator');
       onClose();
     } else if (selectedRoleOption === 'teacher') {
       const teacherObj = teachers.find(t => t.id === selectedTeacherId) || teachers[0];
-      onSelectRole('teacher', teacherObj ? teacherObj.name : 'Teacher Portal', undefined, teacherObj?.id);
+      if (!teacherObj) {
+        setLoginError('No teacher profile available.');
+        return;
+      }
+      if (!passcode.trim()) {
+        setLoginError('Teacher PIN is required to open this portal.');
+        return;
+      }
+      if (!matches(passcode, teacherCode(teacherObj))) {
+        setLoginError('Invalid Teacher PIN for this profile. Access denied.');
+        return;
+      }
+      onSelectRole('teacher', teacherObj.name, undefined, teacherObj.id);
       onClose();
     } else if (selectedRoleOption === 'student') {
       let stu = activeStudent;
       if (studentBarcodeCode.trim()) {
-        const found = students.find(s => 
+        const found = students.find(s =>
           (s.studentNumber || '').toLowerCase().trim() === studentBarcodeCode.toLowerCase().trim() ||
           (s.barcodeId || '').toLowerCase().trim() === studentBarcodeCode.toLowerCase().trim() ||
           (s.id || '').toLowerCase().trim() === studentBarcodeCode.toLowerCase().trim()
@@ -61,18 +78,42 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           return;
         }
       }
-      onSelectRole('student', stu ? stu.fullName : 'Student', stu?.id, undefined);
+      if (!stu) {
+        setLoginError('No student profile available.');
+        return;
+      }
+      if (!passcode.trim()) {
+        setLoginError('Your personal student PIN is required to open this portal.');
+        return;
+      }
+      if (!matches(passcode, studentCode(stu))) {
+        setLoginError('Invalid Student PIN. You can only access your own portal.');
+        return;
+      }
+      onSelectRole('student', stu.fullName, stu.id, undefined);
       onClose();
     } else if (selectedRoleOption === 'parent') {
       let stu = activeStudent;
       if (studentBarcodeCode.trim()) {
-        const found = students.find(s => 
-          s.studentNumber.toLowerCase().trim() === studentBarcodeCode.toLowerCase().trim() ||
-          s.parentPhone.includes(studentBarcodeCode.trim())
+        const found = students.find(s =>
+          (s.studentNumber || '').toLowerCase().trim() === studentBarcodeCode.toLowerCase().trim() ||
+          (s.parentPhone || '').includes(studentBarcodeCode.trim())
         );
         if (found) stu = found;
       }
-      onSelectRole('parent', stu ? `Guardian of ${stu.fullName}` : 'Parent Portal', stu?.id, undefined);
+      if (!stu) {
+        setLoginError('No student profile available.');
+        return;
+      }
+      if (!passcode.trim()) {
+        setLoginError('Guardian code is required (last 4 digits of the registered parent phone).');
+        return;
+      }
+      if (!matches(passcode, parentCode(stu))) {
+        setLoginError('Invalid Guardian code for this student. Access denied.');
+        return;
+      }
+      onSelectRole('parent', `Guardian of ${stu.fullName}`, stu.id, undefined);
       onClose();
     }
   };
@@ -110,7 +151,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           <div className="grid grid-cols-2 gap-2.5 text-xs font-bold">
             <button
               type="button"
-              onClick={() => { setSelectedRoleOption('admin'); setLoginError(''); }}
+              onClick={() => { setSelectedRoleOption('admin'); setLoginError(''); setPasscode(''); }}
               className={`p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5 ${
                 selectedRoleOption === 'admin'
                   ? 'bg-rose-600 text-white border-rose-500 ring-2 ring-rose-400 shadow-md'
@@ -123,7 +164,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
             <button
               type="button"
-              onClick={() => { setSelectedRoleOption('teacher'); setLoginError(''); }}
+              onClick={() => { setSelectedRoleOption('teacher'); setLoginError(''); setPasscode(''); }}
               className={`p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5 ${
                 selectedRoleOption === 'teacher'
                   ? 'bg-purple-600 text-white border-purple-500 ring-2 ring-purple-400 shadow-md'
@@ -136,7 +177,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
             <button
               type="button"
-              onClick={() => { setSelectedRoleOption('student'); setLoginError(''); }}
+              onClick={() => { setSelectedRoleOption('student'); setLoginError(''); setPasscode(''); }}
               className={`p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5 ${
                 selectedRoleOption === 'student'
                   ? 'bg-emerald-600 text-white border-emerald-500 ring-2 ring-emerald-400 shadow-md'
@@ -149,7 +190,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
             <button
               type="button"
-              onClick={() => { setSelectedRoleOption('parent'); setLoginError(''); }}
+              onClick={() => { setSelectedRoleOption('parent'); setLoginError(''); setPasscode(''); }}
               className={`p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5 ${
                 selectedRoleOption === 'parent'
                   ? 'bg-amber-600 text-white border-amber-500 ring-2 ring-amber-400 shadow-md'
@@ -209,9 +250,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 </select>
 
                 <div>
-                  <label className="text-slate-400 text-[10px] uppercase block mb-1">Teacher PIN Code (Optional Demo):</label>
+                  <label className="text-slate-400 text-[10px] uppercase block mb-1">
+                    Teacher PIN Code (required) — hint: <code className="text-amber-400">{teacherCode(activeTeacher)}</code>
+                  </label>
                   <input
                     type="password"
+                    required
                     placeholder="Enter teacher PIN..."
                     value={passcode}
                     onChange={e => setPasscode(e.target.value)}
@@ -254,6 +298,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   ))}
                 </select>
 
+                <div>
+                  <label className="text-emerald-400 uppercase text-[10px] tracking-wider block mb-1">
+                    Personal Student PIN (required){activeStudent ? <> — hint: <code className="text-amber-400">{studentCode(activeStudent)}</code></> : null}
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Enter your student PIN..."
+                    value={passcode}
+                    onChange={e => setPasscode(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-slate-300 dark:border-slate-700 font-mono text-sm"
+                  />
+                </div>
+
                 {activeStudent && (
                   <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center gap-3">
                     <img src={activeStudent.photoUrl} alt="" className="w-9 h-9 rounded-full object-cover border border-emerald-500" />
@@ -283,6 +341,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     </option>
                   ))}
                 </select>
+
+                <div>
+                  <label className="text-amber-400 uppercase text-[10px] tracking-wider block mb-1">
+                    Guardian Access Code (last 4 digits of parent phone){activeStudent ? <> — hint: <code className="text-amber-300">{parentCode(activeStudent)}</code></> : null}
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="e.g. 3333"
+                    value={passcode}
+                    onChange={e => setPasscode(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-slate-300 dark:border-slate-700 font-mono text-sm"
+                  />
+                </div>
 
                 {activeStudent && (
                   <div className="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px] text-slate-300 space-y-1">

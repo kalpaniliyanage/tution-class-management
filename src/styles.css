@@ -142,3 +142,99 @@
     color: var(--color-foreground);
   }
 }
+
+/* ---- Animated site utilities (Sri Lankan modern look) ---- */
+@keyframes lk-float {
+  0%, 100% { transform: translateY(0) }
+  50% { transform: translateY(-14px) }
+}
+@keyframes lk-orb {
+  0%, 100% { transform: translate3d(0,0,0) scale(1) }
+  33% { transform: translate3d(30px,-20px,0) scale(1.12) }
+  66% { transform: translate3d(-20px,18px,0) scale(0.94) }
+}
+@keyframes lk-gradient {
+  0%, 100% { background-position: 0% 50% }
+  50% { background-position: 100% 50% }
+}
+@keyframes lk-shine {
+  0% { transform: translateX(-120%) skewX(-18deg) }
+  100% { transform: translateX(220%) skewX(-18deg) }
+}
+@keyframes lk-marquee {
+  0% { transform: translateX(0) }
+  100% { transform: translateX(-50%) }
+}
+@keyframes lk-rise {
+  0% { opacity: 0; transform: translateY(22px) }
+  100% { opacity: 1; transform: translateY(0) }
+}
+@keyframes lk-pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgb(251 191 36 / 0.45) }
+  70% { box-shadow: 0 0 0 14px rgb(251 191 36 / 0) }
+  100% { box-shadow: 0 0 0 0 rgb(251 191 36 / 0) }
+}
+
+@utility lk-float { animation: lk-float 6s ease-in-out infinite; }
+@utility lk-orb { animation: lk-orb 18s ease-in-out infinite; }
+@utility lk-gradient-text {
+  background-size: 220% 220%;
+  animation: lk-gradient 8s ease infinite;
+}
+@utility lk-marquee { animation: lk-marquee 26s linear infinite; }
+@utility lk-rise { animation: lk-rise 0.7s cubic-bezier(0.22,1,0.36,1) both; }
+@utility lk-pulse-ring { animation: lk-pulse-ring 2.4s ease-out infinite; }
+@utility lk-shine {
+  position: relative;
+  overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.22), transparent);
+    animation: lk-shine 3.6s ease-in-out infinite;
+  }
+}
+@utility lk-lift {
+  transition: transform 0.35s cubic-bezier(0.22,1,0.36,1), box-shadow 0.35s ease;
+  &:hover {
+    transform: translateY(-6px) scale(1.015);
+    box-shadow: 0 22px 44px -22px rgb(2 6 23 / 0.55);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lk-float, .lk-orb, .lk-gradient-text, .lk-marquee, .lk-rise, .lk-pulse-ring { animation: none !important; }
+}
+
+/* ---- Sri Lankan typography + decorative motifs ---- */
+@theme inline {
+  --font-display: "Baloo 2", "Yaldevi", system-ui, sans-serif;
+  --font-sans: "Noto Sans", "Yaldevi", system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+@utility lk-motif {
+  position: relative;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("/__l5e/assets-v1/bef4b8ef-efd5-49be-bc28-4419733b6b8a/lk-pattern.png");
+    background-size: 240px;
+    background-repeat: repeat;
+    opacity: 0.07;
+  }
+}
+
+@utility lk-flagline {
+  background: linear-gradient(90deg, #fbbf24 0%, #fbbf24 25%, #f97316 25%, #f97316 50%, #7f1d1d 50%, #7f1d1d 75%, #047857 75%, #047857 100%);
+}

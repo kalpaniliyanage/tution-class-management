@@ -16,7 +16,8 @@ import {
   getStoredNotices, saveStoredNotices,
   getStoredWallOfFame, saveStoredWallOfFame,
   getStoredTutes, saveStoredTutes,
-  getStoredHalls, saveStoredHalls
+  getStoredHalls, saveStoredHalls,
+  getStoredFreeCards, saveStoredFreeCards
 } from './utils/storage';
 import { seedCollectionToFirestore, subscribeToCollection, bulkSyncToFirestore } from './lib/firebaseSync';
 
@@ -49,6 +50,7 @@ export default function App() {
   const [wallOfFame, setWallOfFame] = useState<WallOfFameItem[]>(getStoredWallOfFame);
   const [tutes, setTutes] = useState<TutePaper[]>(getStoredTutes);
   const [halls, setHalls] = useState<Hall[]>(getStoredHalls);
+  const [freeCards, setFreeCards] = useState<any[]>(getStoredFreeCards);
 
   // App State
   const [currentRole, setCurrentRole] = useState<Role>('guest');
@@ -78,6 +80,7 @@ export default function App() {
   useEffect(() => { saveStoredWallOfFame(wallOfFame); }, [wallOfFame]);
   useEffect(() => { saveStoredTutes(tutes); }, [tutes]);
   useEffect(() => { saveStoredHalls(halls); }, [halls]);
+  useEffect(() => { saveStoredFreeCards(freeCards); }, [freeCards]);
 
   // Firebase Realtime Cloud Sync Initializer
   useEffect(() => {
@@ -258,7 +261,23 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'admin' && (
+        {['admin', 'teacher', 'student', 'parent'].includes(activeTab) && currentRole !== activeTab && (
+          <div className="max-w-md mx-auto my-16 text-center space-y-4 p-8 rounded-3xl border border-rose-500/30 bg-rose-500/5">
+            <h2 className="text-xl font-black">Restricted Portal</h2>
+            <p className="text-sm text-slate-400">
+              This portal is private. Sign in with the correct passcode / PIN for the
+              <span className="font-bold capitalize"> {activeTab} </span> portal to view it.
+            </p>
+            <button
+              onClick={() => setShowLoginModal(true)}
+              className="bg-gradient-to-r from-rose-600 to-indigo-600 text-white font-black px-5 py-2.5 rounded-xl text-sm"
+            >
+              Portal Login
+            </button>
+          </div>
+        )}
+
+        {activeTab === 'admin' && currentRole === 'admin' && (
           <AdminPortal
             classes={classes}
             teachers={teachers}
@@ -291,37 +310,45 @@ export default function App() {
             onOpenPaymentCard={stu => setSelectedPaymentCardStudent(stu)}
             onOpenIDCard={stu => setSelectedIDCardStudent(stu)}
             onUpdateClassBadges={handleUpdateClassBadges}
+            exams={exams}
+            freeCards={freeCards}
+            onAddFreeCard={award => setFreeCards(prev => [award, ...prev])}
+            onDeleteFreeCard={id => setFreeCards(prev => prev.filter(f => f.id !== id))}
           />
         )}
 
-        {activeTab === 'teacher' && (
+        {activeTab === 'teacher' && currentRole === 'teacher' && (
           <TeacherPortal
             activeTeacher={activeTeacher}
             classes={classes}
             students={students}
             attendance={attendance}
             exams={exams}
+            tutes={tutes}
             darkMode={darkMode}
+            onAddTute={t => setTutes(prev => [t, ...prev])}
+            onDeleteTute={id => setTutes(prev => prev.filter(t => t.id !== id))}
             onMarkAttendance={handleMarkAttendance}
             onPostNotice={n => setNotices(prev => [n, ...prev])}
             onRecordMark={m => setExams(prev => [m, ...prev])}
           />
         )}
 
-        {activeTab === 'student' && (
+        {activeTab === 'student' && currentRole === 'student' && (
           <StudentPortal
             student={activeStudent}
             enrolledClasses={classes.filter(c => activeStudent.enrolledClassIds.includes(c.id))}
             payments={payments.filter(p => p.studentId === activeStudent.id)}
             exams={exams.filter(e => e.studentId === activeStudent.id)}
             tutes={tutes}
+            attendance={attendance.filter(a => a.studentId === activeStudent.id)}
             darkMode={darkMode}
             onOpenPaymentCard={() => setSelectedPaymentCardStudent(activeStudent)}
             onOpenIDCard={() => setSelectedIDCardStudent(activeStudent)}
           />
         )}
 
-        {activeTab === 'parent' && (
+        {activeTab === 'parent' && currentRole === 'parent' && (
           <ParentPortal
             student={activeStudent}
             enrolledClasses={classes.filter(c => activeStudent.enrolledClassIds.includes(c.id))}

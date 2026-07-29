@@ -10,6 +10,9 @@ import {
   CheckCircle2, Filter, Zap, Sparkles, UserX, AlertOctagon,
   Search, Award, Trophy, UserPlus, GraduationCap, Building2, UserCheck
 } from 'lucide-react';
+import { ImageDropzone } from './ImageDropzone';
+import { FinancialAidPanel } from './FinancialAidPanel';
+import { teacherCode, studentCode } from '../utils/auth';
 
 interface AdminPortalProps {
   classes: SubjectClass[];
@@ -21,6 +24,8 @@ interface AdminPortalProps {
   settings: InstituteSettings;
   wallOfFame?: WallOfFameItem[];
   halls?: Hall[];
+  exams?: any[];
+  freeCards?: any[];
   darkMode: boolean;
   onAddClass: (newCls: SubjectClass) => void;
   onUpdateClass: (updatedCls: SubjectClass) => void;
@@ -43,6 +48,8 @@ interface AdminPortalProps {
   onOpenPaymentCard: (student: Student) => void;
   onOpenIDCard?: (student: Student) => void;
   onUpdateClassBadges: (classId: string, updatedBadges: ClassBadge[]) => void;
+  onAddFreeCard?: (award: any) => void;
+  onDeleteFreeCard?: (id: string) => void;
 }
 
 export const AdminPortal: React.FC<AdminPortalProps> = ({
@@ -55,6 +62,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   settings,
   wallOfFame = [],
   halls = [],
+  exams = [],
+  freeCards = [],
   darkMode,
   onAddClass,
   onUpdateClass,
@@ -76,10 +85,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   onPostNotice,
   onOpenPaymentCard,
   onOpenIDCard,
-  onUpdateClassBadges
+  onUpdateClassBadges,
+  onAddFreeCard,
+  onDeleteFreeCard
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'classes' | 'teachers' | 'students' | 'halls' | 'timetableMaster' | 'sharedSchedule' | 'bestRanks' | 'payments' | 'notices' | 'settings'
+    'overview' | 'classes' | 'teachers' | 'students' | 'halls' | 'timetableMaster' | 'sharedSchedule' | 'bestRanks' | 'financialAid' | 'payments' | 'notices' | 'settings'
   >('overview');
 
   // Search in students & classes
@@ -121,6 +132,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [teacherSalary, setTeacherSalary] = useState(150000);
   const [teacherSubjectsText, setTeacherSubjectsText] = useState('');
   const [teacherParticipatingClassesText, setTeacherParticipatingClassesText] = useState('');
+  const [teacherAccessCode, setTeacherAccessCode] = useState('');
 
   // Student Form Modal State
   const [showStudentModal, setShowStudentModal] = useState(false);
@@ -511,6 +523,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         phone: teacherPhone || '077 123 4567',
         email: teacherEmail || 'lecturer@edumaster.lk',
         salaryScale: teacherSalary || 150000,
+        accessCode: teacherAccessCode.trim(),
         subjects: subjectsArr.length > 0 ? subjectsArr : ['Combined Mathematics'],
         availableDays: availableDaysArr.length > 0 ? availableDaysArr : [teacherParticipatingClassesText || 'Saturday, Sunday']
       };
@@ -525,6 +538,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         phone: teacherPhone || '077 123 4567',
         email: teacherEmail || 'lecturer@edumaster.lk',
         salaryScale: teacherSalary || 150000,
+        accessCode: teacherAccessCode.trim(),
         subjects: subjectsArr.length > 0 ? subjectsArr : ['Combined Mathematics'],
         availableDays: availableDaysArr.length > 0 ? availableDaysArr : [teacherParticipatingClassesText || 'Saturday, Sunday']
       };
@@ -544,6 +558,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     setTeacherSalary(150000);
     setTeacherSubjectsText('Combined Mathematics, Physics');
     setTeacherParticipatingClassesText('2028 A/L Combined Maths (Sat 8:00 AM - 12:30 PM) | 2027 A/L Revision (Sun 1:00 PM - 5:00 PM) | Grade 11 Paper Class (Wed 3:30 PM)');
+    setTeacherAccessCode('');
     setShowTeacherModal(true);
   };
 
@@ -556,6 +571,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     setTeacherPhone(t.phone);
     setTeacherEmail(t.email);
     setTeacherSalary(t.salaryScale);
+    setTeacherAccessCode(t.accessCode || '');
     setTeacherSubjectsText(t.subjects.join(', '));
     setTeacherParticipatingClassesText((t.availableDays || []).join(' | '));
     setShowTeacherModal(true);
@@ -921,6 +937,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         </button>
 
         <button
+          onClick={() => setActiveTab('financialAid')}
+          className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 whitespace-nowrap ${
+            activeTab === 'financialAid' ? 'bg-rose-600 text-white' : darkMode ? 'bg-slate-900 text-slate-300 hover:bg-slate-800' : 'bg-white text-slate-700 hover:bg-slate-100 border'
+          }`}
+        >
+          <Award className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Fee Aid & Free Cards ({freeCards.length})</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('payments')}
           className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 whitespace-nowrap ${
             activeTab === 'payments' ? 'bg-rose-600 text-white' : darkMode ? 'bg-slate-900 text-slate-300 hover:bg-slate-800' : 'bg-white text-slate-700 hover:bg-slate-100 border'
@@ -950,6 +976,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           <span>Institute Details</span>
         </button>
       </div>
+
+      {activeTab === 'financialAid' && (
+        <FinancialAidPanel
+          students={students}
+          classes={classes}
+          exams={exams}
+          freeCards={freeCards}
+          darkMode={darkMode}
+          onUpdateStudent={onUpdateStudent}
+          onAddFreeCard={onAddFreeCard}
+          onDeleteFreeCard={onDeleteFreeCard}
+        />
+      )}
 
       {/* TAB 1: OVERVIEW STATS */}
       {activeTab === 'overview' && (
@@ -2896,15 +2935,26 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 </div>
               </div>
 
+              <ImageDropzone
+                value={teacherPhoto}
+                onChange={setTeacherPhoto}
+                label="Teacher Photo (drag & drop)"
+              />
+
               <div>
-                <label className="block mb-1 text-slate-400 uppercase text-[10px] tracking-wider">Photo URL:</label>
+                <label className="block mb-1 text-purple-400 uppercase text-[10px] tracking-wider font-black">
+                  Teacher Portal PIN (login code):
+                </label>
                 <input
-                  type="url"
-                  value={teacherPhoto}
-                  onChange={e => setTeacherPhoto(e.target.value)}
-                  placeholder="https://images.unsplash.com/photo-..."
-                  className="w-full px-3 py-2 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-slate-300 dark:border-slate-700 font-semibold"
+                  type="text"
+                  value={teacherAccessCode}
+                  onChange={e => setTeacherAccessCode(e.target.value)}
+                  placeholder="Leave blank to auto-generate from phone number"
+                  className="w-full px-3 py-2 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-slate-300 dark:border-slate-700 font-mono font-bold"
                 />
+                <p className="text-[10px] text-slate-500 mt-1">
+                  Only this PIN unlocks the teacher portal for this profile.
+                </p>
               </div>
 
               <div>
@@ -3068,16 +3118,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 />
               </div>
 
-              <div>
-                <label className="block mb-1 text-slate-400 uppercase text-[10px] tracking-wider">Photo URL:</label>
-                <input
-                  type="url"
-                  value={stuPhoto}
-                  onChange={e => setStuPhoto(e.target.value)}
-                  placeholder="https://images.unsplash.com/photo-..."
-                  className="w-full px-3 py-2 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-slate-300 dark:border-slate-700 font-semibold"
-                />
-              </div>
+              <ImageDropzone
+                value={stuPhoto}
+                onChange={setStuPhoto}
+                label="Student Photo (drag & drop)"
+              />
 
               <div>
                 <label className="block mb-1 text-slate-400 uppercase text-[10px] tracking-wider">Select Enrolled Classes:</label>
@@ -3243,16 +3288,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 </div>
               </div>
 
-              <div>
-                <label className="block mb-1 text-slate-400 uppercase text-[10px] tracking-wider">Photo URL:</label>
-                <input
-                  type="url"
-                  value={rankerPhoto}
-                  onChange={e => setRankerPhoto(e.target.value)}
-                  placeholder="https://images.unsplash.com/photo-..."
-                  className="w-full px-3 py-2 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-slate-300 dark:border-slate-700 font-semibold"
-                />
-              </div>
+              <ImageDropzone
+                value={rankerPhoto}
+                onChange={setRankerPhoto}
+                label="Achiever Photo"
+                hint="Drag & drop the ranker's photo here, or click to browse (JPG / PNG, max 2MB)"
+              />
+
 
               <div>
                 <label className="block mb-1 text-slate-400 uppercase text-[10px] tracking-wider">Subject Grades Format (Comma-separated Subject: Grade):</label>

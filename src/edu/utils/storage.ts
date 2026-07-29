@@ -21,7 +21,8 @@ const KEYS = {
   NOTICES: 'edumaster_notices_v2',
   WALL_OF_FAME: 'edumaster_wof_v2',
   TUTES: 'edumaster_tutes_v2',
-  HALLS: 'edumaster_halls_v2'
+  HALLS: 'edumaster_halls_v2',
+  FREE_CARDS: 'edumaster_freecards_v1'
 };
 
 export const getStoredHalls = (): Hall[] => {
@@ -121,6 +122,15 @@ export const getStoredTutes = (): TutePaper[] => {
 
 export const saveStoredTutes = (tutes: TutePaper[]) => {
   localStorage.setItem(KEYS.TUTES, JSON.stringify(tutes));
+};
+
+export const getStoredFreeCards = () => {
+  const data = localStorage.getItem(KEYS.FREE_CARDS);
+  return data ? JSON.parse(data) : [];
+};
+
+export const saveStoredFreeCards = (items: any[]) => {
+  localStorage.setItem(KEYS.FREE_CARDS, JSON.stringify(items));
 };
 
 export const resetSystemToDefaults = () => {
