@@ -34,6 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   return (
     <header className="sticky top-0 z-40 w-full shadow-md transition-colors duration-200">
+      <div className="lk-flagline h-1 w-full" />
       {/* Top Banner Notice - Admin Controlled Urgent Broadcast */}
       {settings.showBannerNotice && settings.bannerNoticeText && (
         <div className="bg-amber-500 text-slate-950 font-medium text-xs sm:text-sm py-2 px-4 border-b border-amber-600 shadow-sm">
