@@ -820,9 +820,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   return (
     <div className="space-y-6 pb-12">
       {/* Admin Suite Header */}
-      <div className={`p-6 rounded-3xl border flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6 shadow-md ${darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
+      <div className={`relative overflow-hidden lk-motif lk-rise p-6 rounded-3xl border flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6 shadow-md ${darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
+        <div className="lk-flagline absolute top-0 left-0 right-0" />
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-600 to-red-800 flex items-center justify-center text-white font-black text-2xl shadow-md shrink-0">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-600 to-red-800 flex items-center justify-center text-white font-black text-2xl shadow-md shrink-0 lk-float">
             <Shield className="w-7 h-7" />
           </div>
           <div>
@@ -834,10 +835,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 LIVE GOVERNANCE
               </span>
             </div>
-            <h2 className="text-2xl font-black tracking-tight">System Master Administrator</h2>
+            <h2 className="text-2xl font-black tracking-tight lk-gradient-text">System Master Administrator</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">Full administrative control over classes, badges, teachers, students, fees, and banner notices.</p>
+            <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400">ශ්‍රී ලංකා • EduMaster Institute Suite</p>
           </div>
         </div>
+
 
         {/* Quick Action Buttons */}
         <div className="flex flex-wrap items-center gap-2">
