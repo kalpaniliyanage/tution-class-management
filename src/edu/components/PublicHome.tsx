@@ -1,6 +1,8 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { SubjectClass, Role, ClassBadge } from '../types';
+import lkHero from '../../assets/lk-hero.jpg.asset.json';
+import lkBanner from '../../assets/lk-banner.jpg.asset.json';
 import { Search, Calendar, Clock, MapPin, Share2, Plus, Tag, Sparkles, Filter, CheckCircle2, ShieldAlert, BookOpen, Layers, X, Grid, List, Check } from 'lucide-react';
 
 interface PublicHomeProps {
@@ -221,6 +223,25 @@ export const PublicHome: React.FC<PublicHomeProps> = ({
             ))}
           </div>
         </div>
+      </section>
+
+      {/* Sri Lankan showcase strip */}
+      <section className="lk-lift relative overflow-hidden rounded-3xl border border-amber-400/25 shadow-xl">
+        <img
+          src={lkBanner.url}
+          alt="Sri Lankan landscape with Sigiriya, tea plantations, palms and lotus flowers"
+          loading="lazy"
+          width={1600}
+          height={600}
+          className="h-40 sm:h-56 w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/85 via-slate-950/45 to-transparent" />
+        <div className="absolute inset-0 flex flex-col justify-center gap-1 p-6 sm:p-10 text-white">
+          <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-amber-300">ශ්‍රී ලංකා • Proudly Sri Lankan</p>
+          <h3 className="text-xl sm:text-3xl font-black">From Point Pedro to Matara — one institute platform</h3>
+          <p className="text-xs sm:text-sm text-slate-200 max-w-md">Sinhala, Tamil & English medium classes, island-wide halls, and a smart digital student card.</p>
+        </div>
+        <div className="lk-flagline absolute inset-x-0 bottom-0 h-1.5" />
       </section>
 
 
