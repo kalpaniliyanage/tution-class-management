@@ -206,3 +206,35 @@
 @media (prefers-reduced-motion: reduce) {
   .lk-float, .lk-orb, .lk-gradient-text, .lk-marquee, .lk-rise, .lk-pulse-ring { animation: none !important; }
 }
+
+/* ---- Sri Lankan typography + decorative motifs ---- */
+@theme inline {
+  --font-display: "Baloo 2", "Yaldevi", system-ui, sans-serif;
+  --font-sans: "Noto Sans", "Yaldevi", system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+@utility lk-motif {
+  position: relative;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("/__l5e/assets-v1/bef4b8ef-efd5-49be-bc28-4419733b6b8a/lk-pattern.png");
+    background-size: 240px;
+    background-repeat: repeat;
+    opacity: 0.07;
+  }
+}
+
+@utility lk-flagline {
+  background: linear-gradient(90deg, #fbbf24 0%, #fbbf24 25%, #f97316 25%, #f97316 50%, #7f1d1d 50%, #7f1d1d 75%, #047857 75%, #047857 100%);
+}
