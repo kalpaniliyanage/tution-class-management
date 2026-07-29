@@ -38,22 +38,25 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
   return (
     <div className="space-y-6 pb-12">
       {/* Student Welcome Header */}
-      <div className={`p-6 rounded-3xl border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 shadow-md ${darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
+      <div className={`relative overflow-hidden lk-motif lk-rise p-6 rounded-3xl border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 shadow-md ${darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
+        <div className="lk-flagline absolute top-0 left-0 right-0" />
         <div className="flex items-center gap-4">
           <img
             src={student.photo}
             alt={student.fullName}
-            className="w-16 h-16 rounded-2xl object-cover border-4 border-emerald-500 shadow-md shrink-0"
+            className="w-16 h-16 rounded-2xl object-cover border-4 border-emerald-500 shadow-md shrink-0 lk-float"
           />
           <div>
             <span className="bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-black px-2.5 py-0.5 rounded uppercase tracking-wider">
               STUDENT DASHBOARD
             </span>
-            <h2 className="text-xl font-black">{student.fullName}</h2>
+            <h2 className="text-xl font-black lk-gradient-text">{student.fullName}</h2>
             <p className="text-xs text-blue-600 dark:text-blue-400 font-bold font-mono">{student.studentNumber}</p>
             <p className="text-xs text-slate-500">{student.school} | Grade: {student.grade}</p>
+            <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400">සිසු පිවිසුම • Welcome back!</p>
           </div>
         </div>
+
 
         {/* Quick Card Triggers */}
         <div className="flex items-center gap-2 flex-wrap">
