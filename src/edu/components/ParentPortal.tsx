@@ -27,20 +27,23 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
   return (
     <div className="space-y-6 pb-12">
       {/* Guardian Header */}
-      <div className={`p-6 rounded-3xl border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 shadow-md ${darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
+      <div className={`relative overflow-hidden lk-motif lk-rise p-6 rounded-3xl border flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6 shadow-md ${darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
+        <div className="lk-flagline absolute top-0 left-0 right-0" />
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white font-black text-xl shadow-md shrink-0">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white font-black text-xl shadow-md shrink-0 lk-float">
             <Users className="w-7 h-7" />
           </div>
           <div>
             <span className="bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[10px] font-black px-2.5 py-0.5 rounded uppercase tracking-wider">
               GUARDIAN & PARENT PORTAL
             </span>
-            <h2 className="text-xl font-black">{student.parentName}</h2>
+            <h2 className="text-xl font-black lk-gradient-text">{student.parentName}</h2>
             <p className="text-xs text-slate-500">Parent / Guardian of <strong>{student.fullName}</strong> ({student.studentNumber})</p>
             <p className="text-xs text-blue-600 dark:text-blue-400 font-bold">Registered Mobile: {student.parentPhone}</p>
+            <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400">දෙමාපිය පිවිසුම • Guardian Access</p>
           </div>
         </div>
+
 
         <div className="flex items-center gap-2 flex-wrap">
           <button
