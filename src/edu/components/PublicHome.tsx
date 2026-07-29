@@ -126,8 +126,17 @@ export const PublicHome: React.FC<PublicHomeProps> = ({
 
   return (
     <div className="space-y-8 pb-12">
-      {/* Hero Welcome Banner — animated */}
-      <section className="relative overflow-hidden rounded-3xl border border-amber-400/20 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white shadow-2xl">
+      {/* Hero Welcome Banner — animated, Sri Lankan themed */}
+      <section className="lk-motif relative overflow-hidden rounded-3xl border border-amber-400/20 bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900 text-white shadow-2xl">
+        {/* Sri Lankan classroom photo backdrop */}
+        <img
+          src={lkHero.url}
+          alt="Sri Lankan students studying in a bright classroom with Sigiriya rock in the distance"
+          width={1280}
+          height={900}
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-25"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/80 to-slate-900/60" />
         {/* Animated colour orbs (saffron / maroon / green — Sri Lankan flag palette) */}
         <div className="pointer-events-none absolute -top-24 -left-16 w-72 h-72 rounded-full bg-amber-500/25 blur-3xl lk-orb" />
         <div className="pointer-events-none absolute -bottom-28 right-10 w-80 h-80 rounded-full bg-rose-700/25 blur-3xl lk-orb" style={{ animationDelay: '3s' }} />
@@ -137,6 +146,8 @@ export const PublicHome: React.FC<PublicHomeProps> = ({
           className="pointer-events-none absolute inset-0 opacity-[0.07]"
           style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)', backgroundSize: '38px 38px' }}
         />
+        <div className="lk-flagline pointer-events-none absolute inset-x-0 top-0 h-1" />
+
 
         <div className="relative z-10 grid lg:grid-cols-[1.4fr_1fr] gap-8 p-6 sm:p-10">
           <div className="space-y-5">
