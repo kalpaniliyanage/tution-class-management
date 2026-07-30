@@ -1,7 +1,9 @@
 // @ts-nocheck
 import React from 'react';
 import { Student, SubjectClass, PaymentRecord, AttendanceRecord, ExamMark } from '../types';
-import { Users, Shield, Clock, Send, CreditCard, Award, QrCode, Calendar } from 'lucide-react';
+import { Users, Shield, Clock, Send, CreditCard, Award, QrCode, Calendar, CheckCircle2, Wallet } from 'lucide-react';
+import { RoleDashboard, PaymentStatusPanel } from './DashboardWidgets';
+
 
 interface ParentPortalProps {
   student: Student;
