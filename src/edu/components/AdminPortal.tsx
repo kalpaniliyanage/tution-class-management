@@ -10,6 +10,8 @@ import {
   CheckCircle2, Filter, Zap, Sparkles, UserX, AlertOctagon,
   Search, Award, Trophy, UserPlus, GraduationCap, Building2, UserCheck
 } from 'lucide-react';
+import { RoleDashboard } from './DashboardWidgets';
+
 import { ImageDropzone } from './ImageDropzone';
 import { FinancialAidPanel } from './FinancialAidPanel';
 import { teacherCode, studentCode } from '../utils/auth';
