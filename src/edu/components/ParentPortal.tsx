@@ -76,8 +76,35 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
         </div>
       </div>
 
+      {/* Role Dashboard */}
+      <RoleDashboard
+        role="parent"
+        title="Guardian Dashboard"
+        darkMode={darkMode}
+        tiles={[
+          { label: 'Enrolled Classes', value: enrolledClasses.length, tone: 'blue', icon: <Calendar className="w-4 h-4" /> },
+          { label: 'Attendance', value: `${attendance.filter(a => a.status !== 'Absent').length}/${attendance.length || 0}`, hint: 'Gate check-ins', tone: 'emerald', icon: <CheckCircle2 className="w-4 h-4" /> },
+          { label: 'Unpaid Classes', value: enrolledClasses.filter(c => !payments.some(p => p.classId === c.id && p.status === 'Paid')).length, hint: 'This term', tone: 'rose', icon: <Wallet className="w-4 h-4" /> },
+          { label: 'Exam Results', value: exams.length, hint: exams.length ? `Latest rank #${exams[0].rank ?? '-'}` : 'No marks yet', tone: 'amber', icon: <Award className="w-4 h-4" /> }
+        ]}
+        links={[
+          { label: 'Payment Card', onClick: onOpenPaymentCard, icon: <CreditCard className="w-3.5 h-3.5" /> },
+          ...(onOpenIDCard ? [{ label: 'Child ID Pass', onClick: onOpenIDCard, icon: <QrCode className="w-3.5 h-3.5" /> }] : [])
+        ]}
+      />
+
+      {/* Payment Status */}
+      <PaymentStatusPanel
+        enrolledClasses={enrolledClasses}
+        payments={payments}
+        darkMode={darkMode}
+        audience="parent"
+        onOpenPaymentCard={onOpenPaymentCard}
+      />
+
       {/* Grid: Gate Attendance Logs & SMS Dispatches */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
         
         {/* Gate Check-In & Attendance History */}
         <div className={`p-6 rounded-2xl border space-y-4 ${darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'}`}>
