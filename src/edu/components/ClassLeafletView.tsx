@@ -20,8 +20,47 @@ export const ClassLeafletView: React.FC<ClassLeafletViewProps> = ({
   const flyerQrData = `https://edumaster.lk/class/${cls.id}`;
   const qrSvg = generateQRCodeSvg(flyerQrData, 100);
 
+  // Print the flyer alone in an isolated iframe so the app shell never
+  // bleeds extra blank pages into the print job.
   const handlePrint = () => {
-    window.print();
+    const node = document.getElementById('printable-flyer');
+    if (!node) {
+      window.print();
+      return;
+    }
+
+    const frame = document.createElement('iframe');
+    frame.setAttribute('aria-hidden', 'true');
+    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+    document.body.appendChild(frame);
+
+    const doc = frame.contentDocument;
+    const headStyles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+      .map(el => el.outerHTML)
+      .join('\n');
+
+    doc.open();
+    doc.write(`<!doctype html><html><head><meta charset="utf-8"/>${headStyles}
+      <style>
+        @page { size: A4 portrait; margin: 8mm; }
+        html, body { margin:0; padding:0; background:#fff; color:#0f172a; }
+        #flyer-print { width: 194mm; background:#fff; }
+        #flyer-print * { break-inside: avoid; }
+        img { max-width: 100%; }
+      </style>
+    </head><body><div id="flyer-print">${node.innerHTML}</div></body></html>`);
+    doc.close();
+
+    const run = () => {
+      try {
+        frame.contentWindow.focus();
+        frame.contentWindow.print();
+      } finally {
+        setTimeout(() => frame.remove(), 1200);
+      }
+    };
+    if (doc.readyState === 'complete') setTimeout(run, 350);
+    else frame.onload = () => setTimeout(run, 350);
   };
 
   const handleWhatsAppShare = () => {
@@ -32,15 +71,16 @@ export const ClassLeafletView: React.FC<ClassLeafletViewProps> = ({
   return (
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto cursor-pointer"
+      className="fixed inset-0 z-50 flex items-start justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto cursor-pointer"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`relative w-full max-w-2xl rounded-3xl border shadow-2xl overflow-hidden my-8 cursor-default transition-all ${darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
+        className={`relative w-full max-w-2xl rounded-3xl border shadow-2xl overflow-hidden my-4 sm:my-8 cursor-default transition-all ${darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}
       >
         
-        {/* Top Control Bar (Hidden during window.print()) */}
-        <div className="print:hidden bg-slate-950 text-white px-6 py-3 flex items-center justify-between border-b border-slate-800 flex-wrap gap-2">
+        {/* Top Control Bar (sticky so Print stays reachable on mobile) */}
+        <div className="print:hidden sticky top-0 z-20 bg-slate-950 text-white px-4 sm:px-6 py-3 flex items-center justify-between border-b border-slate-800 flex-wrap gap-2">
+
           <div className="flex items-center gap-2 text-xs font-bold">
             <Sparkles className="w-4 h-4 text-amber-400" />
             <span>Class Promotional Flyer & Leaflet Poster</span>

@@ -1,7 +1,9 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { Student, SubjectClass, PaymentRecord, ExamMark, TutePaper, AttendanceRecord } from '../types';
-import { GraduationCap, CreditCard, QrCode, Download, Award, Calendar, CheckCircle2, Clock } from 'lucide-react';
+import { GraduationCap, CreditCard, QrCode, Download, Award, Calendar, CheckCircle2, Clock, Wallet, FileText } from 'lucide-react';
+import { RoleDashboard, PaymentStatusPanel } from './DashboardWidgets';
+
 
 interface StudentPortalProps {
   student: Student;
@@ -86,8 +88,35 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
         </div>
       </div>
 
+      {/* Role Dashboard */}
+      <RoleDashboard
+        role="student"
+        title="Student Dashboard"
+        darkMode={darkMode}
+        tiles={[
+          { label: 'Enrolled Classes', value: enrolledClasses.length, tone: 'blue', icon: <Calendar className="w-4 h-4" /> },
+          { label: 'Attendance', value: `${attendance.filter(a => a.status !== 'Absent').length}/${attendance.length || 0}`, hint: 'Sessions attended', tone: 'emerald', icon: <CheckCircle2 className="w-4 h-4" /> },
+          { label: 'Exam Papers', value: exams.length, hint: exams.length ? `Best: ${Math.max(...exams.map(e => e.marks))}` : 'No marks yet', tone: 'amber', icon: <Award className="w-4 h-4" /> },
+          { label: 'Materials', value: myTutes.length, hint: 'PDFs available', tone: 'indigo', icon: <FileText className="w-4 h-4" /> }
+        ]}
+        links={[
+          { label: 'Payment Card', onClick: onOpenPaymentCard, icon: <CreditCard className="w-3.5 h-3.5" /> },
+          { label: 'Digital ID', onClick: onOpenIDCard, icon: <QrCode className="w-3.5 h-3.5" /> }
+        ]}
+      />
+
+      {/* Payment Status */}
+      <PaymentStatusPanel
+        enrolledClasses={enrolledClasses}
+        payments={payments}
+        darkMode={darkMode}
+        audience="student"
+        onOpenPaymentCard={onOpenPaymentCard}
+      />
+
       {/* Main Grid: Classes, Papers & Exam Marks */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
         
         {/* Col 1 & 2: Enrolled Classes & Downloadable Papers */}
         <div className="lg:col-span-2 space-y-6">

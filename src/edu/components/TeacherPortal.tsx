@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { SubjectClass, AttendanceRecord, ExamMark, Notice, Student, Teacher, TutePaper } from '../types';
 import { UserCheck, Calendar, Clock, MapPin, CheckCircle2, AlertTriangle, Send, FileText, Award } from 'lucide-react';
 import { MaterialsUploader } from './MaterialsUploader';
+import { RoleDashboard } from './DashboardWidgets';
+
 
 interface TeacherPortalProps {
   activeTeacher?: Teacher;
@@ -123,7 +125,26 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({
         </div>
       </div>
 
+      {/* Role Dashboard */}
+      <RoleDashboard
+        role="teacher"
+        title="Teacher Dashboard"
+        darkMode={darkMode}
+        tiles={[
+          { label: 'My Classes', value: displayClasses.length, tone: 'indigo', icon: <Calendar className="w-4 h-4" /> },
+          { label: 'Students', value: students.length, hint: 'In registers', tone: 'blue', icon: <UserCheck className="w-4 h-4" /> },
+          { label: 'Attendance Marked', value: attendance.length, hint: 'Records logged', tone: 'emerald', icon: <CheckCircle2 className="w-4 h-4" /> },
+          { label: 'Materials', value: tutes.length, hint: `${exams.length} marks entered`, tone: 'amber', icon: <FileText className="w-4 h-4" /> }
+        ]}
+        links={[
+          { label: 'Registers', onClick: () => setActiveTab('attendance'), icon: <UserCheck className="w-3.5 h-3.5" /> },
+          { label: 'Tutes & Papers', onClick: () => setActiveTab('materials'), icon: <FileText className="w-3.5 h-3.5" /> },
+          { label: 'Cancellation Notice', onClick: () => setActiveTab('notices'), icon: <AlertTriangle className="w-3.5 h-3.5" /> }
+        ]}
+      />
+
       {/* Tab Content */}
+
       {activeTab === 'schedule' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {classes.map(cls => (
