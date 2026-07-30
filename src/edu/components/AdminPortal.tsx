@@ -857,7 +857,39 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         </div>
       </div>
 
+      {/* Role Dashboard */}
+      <RoleDashboard
+        role="admin"
+        title="Admin Dashboard"
+        darkMode={darkMode}
+        tiles={[
+          { label: 'Students', value: students.length, hint: `${teachers.length} teachers`, tone: 'blue', icon: <Users className="w-4 h-4" /> },
+          { label: 'Classes', value: classes.length, hint: `${halls.length} halls`, tone: 'indigo', icon: <BookOpen className="w-4 h-4" /> },
+          {
+            label: 'Collected',
+            value: `Rs. ${payments.filter(p => p.status === 'Paid').reduce((s, p) => s + (p.amount || 0), 0).toLocaleString()}`,
+            hint: `${payments.filter(p => p.status === 'Paid').length} receipts`,
+            tone: 'emerald',
+            icon: <CreditCard className="w-4 h-4" />
+          },
+          {
+            label: 'Pending / Overdue',
+            value: payments.filter(p => p.status !== 'Paid').length,
+            hint: 'Mark paid in Payments',
+            tone: 'rose',
+            icon: <AlertTriangle className="w-4 h-4" />
+          }
+        ]}
+        links={[
+          { label: 'Payments & Income', onClick: () => setActiveTab('payments'), icon: <CreditCard className="w-3.5 h-3.5" /> },
+          { label: 'Student Registry', onClick: () => setActiveTab('students'), icon: <Users className="w-3.5 h-3.5" /> },
+          { label: 'Classes', onClick: () => setActiveTab('classes'), icon: <BookOpen className="w-3.5 h-3.5" /> },
+          { label: 'Notices', onClick: () => setActiveTab('notices'), icon: <Send className="w-3.5 h-3.5" /> }
+        ]}
+      />
+
       {/* Admin Sub-Tabs */}
+
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200 dark:border-slate-800 scrollbar-none text-xs font-bold">
         <button
           onClick={() => setActiveTab('overview')}
