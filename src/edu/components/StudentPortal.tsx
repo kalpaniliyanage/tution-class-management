@@ -1,7 +1,9 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { Student, SubjectClass, PaymentRecord, ExamMark, TutePaper, AttendanceRecord } from '../types';
-import { GraduationCap, CreditCard, QrCode, Download, Award, Calendar, CheckCircle2, Clock } from 'lucide-react';
+import { GraduationCap, CreditCard, QrCode, Download, Award, Calendar, CheckCircle2, Clock, Wallet, FileText } from 'lucide-react';
+import { RoleDashboard, PaymentStatusPanel } from './DashboardWidgets';
+
 
 interface StudentPortalProps {
   student: Student;
