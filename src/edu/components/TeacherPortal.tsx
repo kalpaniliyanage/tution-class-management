@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { SubjectClass, AttendanceRecord, ExamMark, Notice, Student, Teacher, TutePaper } from '../types';
 import { UserCheck, Calendar, Clock, MapPin, CheckCircle2, AlertTriangle, Send, FileText, Award } from 'lucide-react';
 import { MaterialsUploader } from './MaterialsUploader';
+import { RoleDashboard } from './DashboardWidgets';
+
 
 interface TeacherPortalProps {
   activeTeacher?: Teacher;
