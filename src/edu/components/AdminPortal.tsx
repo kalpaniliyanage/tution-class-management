@@ -8,12 +8,11 @@ import {
   Shield, Users, BookOpen, CreditCard, Clock, Send,
   Settings, Plus, Trash2, Edit3, Tag, AlertTriangle,
   CheckCircle2, Filter, Zap, Sparkles, UserX, AlertOctagon,
-  Search, Award, Trophy, UserPlus, GraduationCap, Building2, UserCheck
+  Search, Award, Trophy, UserPlus, GraduationCap, Building2, UserCheck, KeyRound
 } from 'lucide-react';
-import { RoleDashboard } from './DashboardWidgets';
-
 import { ImageDropzone } from './ImageDropzone';
 import { FinancialAidPanel } from './FinancialAidPanel';
+import { CredentialsPanel } from './CredentialsPanel';
 import { teacherCode, studentCode } from '../utils/auth';
 
 interface AdminPortalProps {
@@ -92,7 +91,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   onDeleteFreeCard
 }) => {
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'classes' | 'teachers' | 'students' | 'halls' | 'timetableMaster' | 'sharedSchedule' | 'bestRanks' | 'financialAid' | 'payments' | 'notices' | 'settings'
+    'overview' | 'classes' | 'teachers' | 'students' | 'halls' | 'timetableMaster' | 'sharedSchedule' | 'bestRanks' | 'financialAid' | 'credentials' | 'payments' | 'notices' | 'settings'
   >('overview');
 
   // Search in students & classes
@@ -822,10 +821,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   return (
     <div className="space-y-6 pb-12">
       {/* Admin Suite Header */}
-      <div className={`relative overflow-hidden lk-motif lk-rise p-6 rounded-3xl border flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6 shadow-md ${darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
-        <div className="lk-flagline absolute top-0 left-0 right-0" />
+      <div className={`p-6 rounded-3xl border flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6 shadow-md ${darkMode ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-600 to-red-800 flex items-center justify-center text-white font-black text-2xl shadow-md shrink-0 lk-float">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-600 to-red-800 flex items-center justify-center text-white font-black text-2xl shadow-md shrink-0">
             <Shield className="w-7 h-7" />
           </div>
           <div>
@@ -837,12 +835,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
                 LIVE GOVERNANCE
               </span>
             </div>
-            <h2 className="text-2xl font-black tracking-tight lk-gradient-text">System Master Administrator</h2>
+            <h2 className="text-2xl font-black tracking-tight">System Master Administrator</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">Full administrative control over classes, badges, teachers, students, fees, and banner notices.</p>
-            <p className="text-[11px] font-bold text-amber-600 dark:text-amber-400">ශ්‍රී ලංකා • EduMaster Institute Suite</p>
           </div>
         </div>
-
 
         {/* Quick Action Buttons */}
         <div className="flex flex-wrap items-center gap-2">
@@ -859,39 +855,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         </div>
       </div>
 
-      {/* Role Dashboard */}
-      <RoleDashboard
-        role="admin"
-        title="Admin Dashboard"
-        darkMode={darkMode}
-        tiles={[
-          { label: 'Students', value: students.length, hint: `${teachers.length} teachers`, tone: 'blue', icon: <Users className="w-4 h-4" /> },
-          { label: 'Classes', value: classes.length, hint: `${halls.length} halls`, tone: 'indigo', icon: <BookOpen className="w-4 h-4" /> },
-          {
-            label: 'Collected',
-            value: `Rs. ${payments.filter(p => p.status === 'Paid').reduce((s, p) => s + (p.amount || 0), 0).toLocaleString()}`,
-            hint: `${payments.filter(p => p.status === 'Paid').length} receipts`,
-            tone: 'emerald',
-            icon: <CreditCard className="w-4 h-4" />
-          },
-          {
-            label: 'Pending / Overdue',
-            value: payments.filter(p => p.status !== 'Paid').length,
-            hint: 'Mark paid in Payments',
-            tone: 'rose',
-            icon: <AlertTriangle className="w-4 h-4" />
-          }
-        ]}
-        links={[
-          { label: 'Payments & Income', onClick: () => setActiveTab('payments'), icon: <CreditCard className="w-3.5 h-3.5" /> },
-          { label: 'Student Registry', onClick: () => setActiveTab('students'), icon: <Users className="w-3.5 h-3.5" /> },
-          { label: 'Classes', onClick: () => setActiveTab('classes'), icon: <BookOpen className="w-3.5 h-3.5" /> },
-          { label: 'Notices', onClick: () => setActiveTab('notices'), icon: <Send className="w-3.5 h-3.5" /> }
-        ]}
-      />
-
       {/* Admin Sub-Tabs */}
-
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200 dark:border-slate-800 scrollbar-none text-xs font-bold">
         <button
           onClick={() => setActiveTab('overview')}
@@ -984,6 +948,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
         </button>
 
         <button
+          onClick={() => setActiveTab('credentials')}
+          className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 whitespace-nowrap ${
+            activeTab === 'credentials' ? 'bg-rose-600 text-white' : darkMode ? 'bg-slate-900 text-slate-300 hover:bg-slate-800' : 'bg-white text-slate-700 hover:bg-slate-100 border'
+          }`}
+        >
+          <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+          <span>Passwords & Access</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('payments')}
           className={`px-4 py-2 rounded-xl transition flex items-center gap-1.5 whitespace-nowrap ${
             activeTab === 'payments' ? 'bg-rose-600 text-white' : darkMode ? 'bg-slate-900 text-slate-300 hover:bg-slate-800' : 'bg-white text-slate-700 hover:bg-slate-100 border'
@@ -1013,6 +987,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           <span>Institute Details</span>
         </button>
       </div>
+
+      {activeTab === 'credentials' && (
+        <CredentialsPanel
+          darkMode={darkMode}
+          students={students}
+          teachers={teachers}
+          onUpdateStudent={onUpdateStudent}
+          onUpdateTeacher={onUpdateTeacher}
+        />
+      )}
 
       {activeTab === 'financialAid' && (
         <FinancialAidPanel
