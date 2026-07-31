@@ -2,7 +2,7 @@
 import React from 'react';
 import { SubjectClass, InstituteSettings } from '../types';
 import { Printer, Share2, X, Phone, MapPin, Calendar, Clock, CheckCircle2, Sparkles, QrCode } from 'lucide-react';
-import { generateQRCodeSvg } from '../utils/qr';
+import { generateQRCodeSvg, buildVerifyUrl } from '../utils/qr';
 
 interface ClassLeafletViewProps {
   cls: SubjectClass;
@@ -17,7 +17,7 @@ export const ClassLeafletView: React.FC<ClassLeafletViewProps> = ({
   darkMode,
   onClose
 }) => {
-  const flyerQrData = `https://edumaster.lk/class/${cls.id}`;
+  const flyerQrData = buildVerifyUrl(cls.id);
   const qrSvg = generateQRCodeSvg(flyerQrData, 100);
 
   // Print the flyer alone in an isolated iframe so the app shell never
