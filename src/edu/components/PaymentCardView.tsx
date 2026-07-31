@@ -2,7 +2,7 @@
 import React, { useRef, useState } from 'react';
 import { Student, SubjectClass, PaymentRecord, InstituteSettings } from '../types';
 import { Printer, X, CheckCircle2, Stamp, Phone, RotateCcw } from 'lucide-react';
-import { generateQRCodeSvg, generateBarcodeSvg } from '../utils/qr';
+import { generateQRCodeSvg, generateBarcodeSvg, buildVerifyUrl } from '../utils/qr';
 
 interface PaymentCardViewProps {
   student: Student;
@@ -207,7 +207,7 @@ export const PaymentCardView: React.FC<PaymentCardViewProps> = ({
   const currentPayment = activeClass ? getPayment(activeClass.id, selectedMonth) : null;
   const isPaid = currentPayment?.status === 'Paid';
 
-  const qrSvg = generateQRCodeSvg(student.studentNumber, 54);
+  const qrSvg = generateQRCodeSvg(buildVerifyUrl(student.studentNumber), 54);
   const barcodeSvg = generateBarcodeSvg(student.studentNumber, 160, 22);
 
   const handlePrint = () => {

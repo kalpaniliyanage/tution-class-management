@@ -2,7 +2,7 @@
 import React, { useRef, useState } from 'react';
 import { Student, InstituteSettings } from '../types';
 import { Printer, X, Phone, ShieldCheck } from 'lucide-react';
-import { generateQRCodeSvg, generateBarcodeSvg } from '../utils/qr';
+import { generateQRCodeSvg, generateBarcodeSvg, buildVerifyUrl } from '../utils/qr';
 
 interface StudentIDCardViewProps {
   student: Student;
@@ -193,8 +193,8 @@ export const StudentIDCardView: React.FC<StudentIDCardViewProps> = ({
   const [activeTab, setActiveTab] = useState<'digital' | 'printable'>('digital');
   const digitalPrintRef = useRef<HTMLDivElement>(null);
   const printablePrintRef = useRef<HTMLDivElement>(null);
-  const qrSvg = generateQRCodeSvg(student.studentNumber, 70);
-  const qrSvgSmall = generateQRCodeSvg(student.studentNumber, 54);
+  const qrSvg = generateQRCodeSvg(buildVerifyUrl(student.studentNumber), 70);
+  const qrSvgSmall = generateQRCodeSvg(buildVerifyUrl(student.studentNumber), 54);
   const barcodeSvg = generateBarcodeSvg(student.studentNumber, 180, 28);
 
   const handlePrint = () => {
