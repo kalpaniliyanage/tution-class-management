@@ -4,6 +4,8 @@ import { SubjectClass, AttendanceRecord, ExamMark, Notice, Student, Teacher, Tut
 import { UserCheck, Calendar, Clock, MapPin, CheckCircle2, AlertTriangle, Send, FileText, Award } from 'lucide-react';
 import { MaterialsUploader } from './MaterialsUploader';
 import { RoleDashboard } from './DashboardWidgets';
+import { AccessCodeCard } from './AccessCodeCard';
+import { teacherCode } from '../utils/auth';
 
 
 interface TeacherPortalProps {
@@ -141,6 +143,14 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({
           { label: 'Tutes & Papers', onClick: () => setActiveTab('materials'), icon: <FileText className="w-3.5 h-3.5" /> },
           { label: 'Cancellation Notice', onClick: () => setActiveTab('notices'), icon: <AlertTriangle className="w-3.5 h-3.5" /> }
         ]}
+      />
+
+      {/* Private Access Code */}
+      <AccessCodeCard
+        label="My Private Teacher Passcode"
+        ownerName={activeTeacher ? `${activeTeacher.title} ${activeTeacher.name}` : undefined}
+        code={teacherCode(activeTeacher)}
+        accent="purple"
       />
 
       {/* Tab Content */}

@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Student, SubjectClass, PaymentRecord, ExamMark, TutePaper, AttendanceRecord } from '../types';
 import { GraduationCap, CreditCard, QrCode, Download, Award, Calendar, CheckCircle2, Clock, Wallet, FileText } from 'lucide-react';
 import { RoleDashboard, PaymentStatusPanel } from './DashboardWidgets';
+import { AccessCodeCard } from './AccessCodeCard';
+import { studentCode } from '../utils/auth';
 
 
 interface StudentPortalProps {
@@ -103,6 +105,14 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
           { label: 'Payment Card', onClick: onOpenPaymentCard, icon: <CreditCard className="w-3.5 h-3.5" /> },
           { label: 'Digital ID', onClick: onOpenIDCard, icon: <QrCode className="w-3.5 h-3.5" /> }
         ]}
+      />
+
+      {/* Private Access Code */}
+      <AccessCodeCard
+        label="My Private Student Passcode"
+        ownerName={`${student.fullName} • ${student.studentNumber}`}
+        code={studentCode(student)}
+        accent="emerald"
       />
 
       {/* Payment Status */}
