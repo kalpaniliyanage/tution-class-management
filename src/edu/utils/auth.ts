@@ -5,41 +5,45 @@ export const ADMIN_CODES = ['admin', '1234', '9999'];
 
 const digits = (v?: string) => (v || '').replace(/\D/g, '');
 
-/** Stable non-crypto hash so generated codes never change between sessions. */
-const hash = (seed: string): number => {
-  let h = 2166136261;
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return Math.abs(h);
-};
-
-/** System-generated 6 digit numeric passcode for a given identity seed. */
-export const generateCode = (seed: string, prefix = ''): string => {
-  const n = hash(seed) % 1000000;
-  return `${prefix}${String(n).padStart(6, '0')}`;
-};
-
 export const teacherCode = (t?: Teacher): string =>
-  (t?.accessCode && t.accessCode.trim()) ||
-  generateCode(`teacher:${t?.id || ''}:${digits(t?.phone)}`, 'T');
+  (t?.accessCode && t.accessCode.trim()) || `T${digits(t?.phone).slice(-4) || '0000'}`;
 
 export const studentCode = (s?: Student): string =>
-  (s?.accessCode && s.accessCode.trim()) ||
-  s?.pin ||
-  generateCode(`student:${s?.id || ''}:${s?.studentNumber || ''}`, 'S');
+  (s?.accessCode && s.accessCode.trim()) || s?.pin || digits(s?.mobile).slice(-4) || '0000';
 
 export const parentCode = (s?: Student): string =>
-  generateCode(`parent:${s?.id || ''}:${digits(s?.parentPhone)}`, 'P');
+  (s?.parentAccessCode && s.parentAccessCode.trim()) || digits(s?.parentPhone).slice(-4) || '0000';
 
 export const matches = (input: string, expected: string) =>
   (input || '').trim().toLowerCase() === (expected || '').trim().toLowerCase();
 
-/** Masked rendering, e.g. T123456 -> T•••••6 */
-export const maskCode = (code?: string): string => {
-  const c = (code || '').trim();
-  if (!c) return '••••••';
-  if (c.length <= 2) return '••';
-  return `${c[0]}${'•'.repeat(Math.max(c.length - 2, 2))}${c[c.length - 1]}`;
+/* ---- "Remember me" saved logins for student & parent portals ---- */
+const SAVED_KEY = 'edu_saved_logins_v1';
+
+export type SavedLogin = { studentId: string; code: string; barcode?: string };
+
+const readAll = (): Record<string, SavedLogin> => {
+  if (typeof window === 'undefined') return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(SAVED_KEY) || '{}');
+  } catch {
+    return {};
+  }
+};
+
+export const getSavedLogin = (role: 'student' | 'parent'): SavedLogin | null =>
+  readAll()[role] || null;
+
+export const saveLogin = (role: 'student' | 'parent', data: SavedLogin) => {
+  if (typeof window === 'undefined') return;
+  const all = readAll();
+  all[role] = data;
+  window.localStorage.setItem(SAVED_KEY, JSON.stringify(all));
+};
+
+export const clearSavedLogin = (role: 'student' | 'parent') => {
+  if (typeof window === 'undefined') return;
+  const all = readAll();
+  delete all[role];
+  window.localStorage.setItem(SAVED_KEY, JSON.stringify(all));
 };
