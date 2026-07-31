@@ -3,6 +3,8 @@ import React from 'react';
 import { Student, SubjectClass, PaymentRecord, AttendanceRecord, ExamMark } from '../types';
 import { Users, Shield, Clock, Send, CreditCard, Award, QrCode, Calendar, CheckCircle2, Wallet } from 'lucide-react';
 import { RoleDashboard, PaymentStatusPanel } from './DashboardWidgets';
+import { AccessCodeCard } from './AccessCodeCard';
+import { parentCode } from '../utils/auth';
 
 
 interface ParentPortalProps {
@@ -91,6 +93,14 @@ export const ParentPortal: React.FC<ParentPortalProps> = ({
           { label: 'Payment Card', onClick: onOpenPaymentCard, icon: <CreditCard className="w-3.5 h-3.5" /> },
           ...(onOpenIDCard ? [{ label: 'Child ID Pass', onClick: onOpenIDCard, icon: <QrCode className="w-3.5 h-3.5" /> }] : [])
         ]}
+      />
+
+      {/* Private Access Code */}
+      <AccessCodeCard
+        label="My Private Guardian Passcode"
+        ownerName={`Guardian of ${student.fullName} • ${student.studentNumber}`}
+        code={parentCode(student)}
+        accent="amber"
       />
 
       {/* Payment Status */}
