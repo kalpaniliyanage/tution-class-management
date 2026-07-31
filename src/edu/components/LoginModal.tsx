@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { Role, Student, Teacher } from '../types';
-import { ADMIN_CODES, teacherCode, studentCode, parentCode, matches } from '../utils/auth';
+import { ADMIN_CODES, teacherCode, studentCode, parentCode, matches, getSavedLogin, saveLogin, clearSavedLogin } from '../utils/auth';
 import { LogIn, Shield, UserCheck, GraduationCap, Users, X, Sparkles, Key, QrCode, Lock, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface LoginModalProps {
@@ -27,6 +27,23 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>(teachers[0]?.id || '');
   const [studentBarcodeCode, setStudentBarcodeCode] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Restore a saved student / parent login when that portal is picked
+  React.useEffect(() => {
+    if (selectedRoleOption !== 'student' && selectedRoleOption !== 'parent') return;
+    const saved = getSavedLogin(selectedRoleOption);
+    if (!saved) { setRememberMe(false); return; }
+    setRememberMe(true);
+    if (saved.studentId) setSelectedStudentId(saved.studentId);
+    if (selectedRoleOption === 'student') setStudentBarcodeCode(saved.barcode || '');
+    setPasscode(saved.code || '');
+  }, [selectedRoleOption]);
+
+  const persistLogin = (role: 'student' | 'parent', studentId: string, code: string, barcode?: string) => {
+    if (rememberMe) saveLogin(role, { studentId, code, barcode });
+    else clearSavedLogin(role);
+  };
 
   // Find selected entities
   const activeStudent = students.find(s => s.id === selectedStudentId) || students[0];
@@ -90,6 +107,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         setLoginError('Invalid Student PIN. You can only access your own portal.');
         return;
       }
+      persistLogin('student', stu.id, passcode, studentBarcodeCode.trim() || undefined);
       onSelectRole('student', stu.fullName, stu.id, undefined);
       onClose();
     } else if (selectedRoleOption === 'parent') {
@@ -113,6 +131,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         setLoginError('Invalid Guardian code for this student. Access denied.');
         return;
       }
+      persistLogin('parent', stu.id, passcode);
       onSelectRole('parent', `Guardian of ${stu.fullName}`, stu.id, undefined);
       onClose();
     }
@@ -251,7 +270,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
                 <div>
                   <label className="text-slate-400 text-[10px] uppercase block mb-1">
-                    Teacher PIN Code (required) — private to you
+                    Teacher PIN Code (required) — hint: <code className="text-amber-400">{teacherCode(activeTeacher)}</code>
                   </label>
                   <input
                     type="password"
@@ -300,7 +319,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
                 <div>
                   <label className="text-emerald-400 uppercase text-[10px] tracking-wider block mb-1">
-                    Personal Student PIN (required) — private to you
+                    Personal Student PIN (required){activeStudent ? <> — hint: <code className="text-amber-400">{studentCode(activeStudent)}</code></> : null}
                   </label>
                   <input
                     type="password"
@@ -344,7 +363,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
                 <div>
                   <label className="text-amber-400 uppercase text-[10px] tracking-wider block mb-1">
-                    Guardian Access Code (required) — private to you
+                    Guardian Access Code (last 4 digits of parent phone){activeStudent ? <> — hint: <code className="text-amber-300">{parentCode(activeStudent)}</code></> : null}
                   </label>
                   <input
                     type="password"
@@ -363,6 +382,32 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   </div>
                 )}
               </div>
+            )}
+
+            {(selectedRoleOption === 'student' || selectedRoleOption === 'parent') && (
+              <label className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-slate-500/25 bg-slate-500/5 cursor-pointer">
+                <span className="flex items-center gap-2 text-[11px] font-bold text-slate-500 dark:text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={e => {
+                      setRememberMe(e.target.checked);
+                      if (!e.target.checked) clearSavedLogin(selectedRoleOption);
+                    }}
+                    className="w-4 h-4 accent-emerald-500"
+                  />
+                  Save my login on this device
+                </span>
+                {getSavedLogin(selectedRoleOption) && (
+                  <button
+                    type="button"
+                    onClick={() => { clearSavedLogin(selectedRoleOption); setRememberMe(false); setPasscode(''); setStudentBarcodeCode(''); }}
+                    className="text-[10px] font-black text-rose-500 underline"
+                  >
+                    FORGET SAVED LOGIN
+                  </button>
+                )}
+              </label>
             )}
 
             <button
