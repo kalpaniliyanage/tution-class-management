@@ -2,6 +2,18 @@
 import qrcode from 'qrcode-generator';
 
 /**
+ * Absolute URL that a scanned QR should open. Points at this app's own
+ * /verify/<code> page so scanning never lands on a dead external domain.
+ */
+export function buildVerifyUrl(code: string): string {
+  const safe = encodeURIComponent(String(code ?? '').trim());
+  const origin = typeof window !== 'undefined' && window.location?.origin
+    ? window.location.origin
+    : '';
+  return `${origin}/verify/${safe}`;
+}
+
+/**
  * Real, scannable QR code rendered as an inline SVG string.
  * Uses the qrcode-generator library (error correction level M, auto type).
  */
