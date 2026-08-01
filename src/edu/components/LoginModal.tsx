@@ -124,7 +124,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         return;
       }
       if (!passcode.trim()) {
-        setLoginError('Guardian code is required (last 4 digits of the registered parent phone).');
+        setLoginError('Guardian access code is required.');
         return;
       }
       if (!matches(passcode, parentCode(stu))) {
@@ -242,7 +242,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 </div>
                 <input
                   type="password"
-                  placeholder="Enter admin code (e.g. admin or 1234)..."
+                  placeholder="Enter admin passcode..."
                   value={passcode}
                   onChange={e => setPasscode(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl border bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-slate-300 dark:border-slate-700 font-mono text-sm"
@@ -368,7 +368,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   <input
                     type="password"
                     required
-                    placeholder="e.g. 3333"
+                    placeholder="Enter guardian access code..."
                     value={passcode}
                     onChange={e => setPasscode(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-slate-300 dark:border-slate-700 font-mono text-sm"
