@@ -124,7 +124,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         return;
       }
       if (!passcode.trim()) {
-        setLoginError('Guardian code is required (last 4 digits of the registered parent phone).');
+        setLoginError('Guardian access code is required.');
         return;
       }
       if (!matches(passcode, parentCode(stu))) {
@@ -238,11 +238,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     <Lock className="w-3.5 h-3.5" />
                     System Admin Security Passcode
                   </label>
-                  <span className="text-[10px] text-slate-400">Default Code: <code className="text-amber-400">admin</code></span>
+                  <span className="text-[10px] text-slate-400">Private code</span>
                 </div>
                 <input
                   type="password"
-                  placeholder="Enter admin code (e.g. admin or 1234)..."
+                  placeholder="Enter admin passcode..."
                   value={passcode}
                   onChange={e => setPasscode(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl border bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-slate-300 dark:border-slate-700 font-mono text-sm"
@@ -270,7 +270,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
                 <div>
                   <label className="text-slate-400 text-[10px] uppercase block mb-1">
-                    Teacher PIN Code (required) — hint: <code className="text-amber-400">{teacherCode(activeTeacher)}</code>
+                    Teacher PIN Code (required)
                   </label>
                   <input
                     type="password"
@@ -319,7 +319,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
                 <div>
                   <label className="text-emerald-400 uppercase text-[10px] tracking-wider block mb-1">
-                    Personal Student PIN (required){activeStudent ? <> — hint: <code className="text-amber-400">{studentCode(activeStudent)}</code></> : null}
+                    Personal Student PIN (required)
                   </label>
                   <input
                     type="password"
@@ -363,12 +363,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
                 <div>
                   <label className="text-amber-400 uppercase text-[10px] tracking-wider block mb-1">
-                    Guardian Access Code (last 4 digits of parent phone){activeStudent ? <> — hint: <code className="text-amber-300">{parentCode(activeStudent)}</code></> : null}
+                    Guardian Access Code (required)
                   </label>
                   <input
                     type="password"
                     required
-                    placeholder="e.g. 3333"
+                    placeholder="Enter guardian access code..."
                     value={passcode}
                     onChange={e => setPasscode(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-slate-300 dark:border-slate-700 font-mono text-sm"
