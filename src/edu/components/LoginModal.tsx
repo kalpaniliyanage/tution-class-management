@@ -238,7 +238,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     <Lock className="w-3.5 h-3.5" />
                     System Admin Security Passcode
                   </label>
-                  <span className="text-[10px] text-slate-400">Default Code: <code className="text-amber-400">admin</code></span>
+                  <span className="text-[10px] text-slate-400">Private code</span>
                 </div>
                 <input
                   type="password"
@@ -270,7 +270,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
                 <div>
                   <label className="text-slate-400 text-[10px] uppercase block mb-1">
-                    Teacher PIN Code (required) — hint: <code className="text-amber-400">{teacherCode(activeTeacher)}</code>
+                    Teacher PIN Code (required)
                   </label>
                   <input
                     type="password"
@@ -319,7 +319,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
                 <div>
                   <label className="text-emerald-400 uppercase text-[10px] tracking-wider block mb-1">
-                    Personal Student PIN (required){activeStudent ? <> — hint: <code className="text-amber-400">{studentCode(activeStudent)}</code></> : null}
+                    Personal Student PIN (required)
                   </label>
                   <input
                     type="password"
@@ -363,7 +363,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
                 <div>
                   <label className="text-amber-400 uppercase text-[10px] tracking-wider block mb-1">
-                    Guardian Access Code (last 4 digits of parent phone){activeStudent ? <> — hint: <code className="text-amber-300">{parentCode(activeStudent)}</code></> : null}
+                    Guardian Access Code (required)
                   </label>
                   <input
                     type="password"
