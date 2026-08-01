@@ -14,6 +14,9 @@ export const studentCode = (s?: Student): string =>
 export const parentCode = (s?: Student): string =>
   (s?.parentAccessCode && s.parentAccessCode.trim()) || digits(s?.parentPhone).slice(-4) || '0000';
 
+export const maskCode = (code?: string): string =>
+  '•'.repeat(Math.max(4, (code || '').length));
+
 export const matches = (input: string, expected: string) =>
   (input || '').trim().toLowerCase() === (expected || '').trim().toLowerCase();
 
