@@ -107,9 +107,26 @@ export const Footer: React.FC<FooterProps> = ({ settings, darkMode }) => {
 
         </div>
 
+        {/* Developer credit */}
+        <div className="border-t border-slate-800 pt-6 mb-6">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+            <h3 className="text-white font-bold text-sm tracking-wider uppercase mb-1">Developed By</h3>
+            <p className="text-slate-200 font-semibold text-sm">Kalpani M Liyanage</p>
+            <p className="text-xs text-slate-400 mb-3">
+              BICT Undergraduate — Faculty of Technology, University of Sri Jayewardenepura
+            </p>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs">
+              <a href="https://github.com/kalpaniliyanage" target="_blank" rel="noreferrer" className="text-amber-400 hover:text-amber-300 underline underline-offset-2">GitHub</a>
+              <a href="https://www.linkedin.com/in/kalpani-m-liyanage/" target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300 underline underline-offset-2">LinkedIn</a>
+              <a href="https://personal-portfolio-r4by-git-main-kalpaniliyanages-projects.vercel.app/" target="_blank" rel="noreferrer" className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2">Portfolio</a>
+              <a href="mailto:kalpanimadhubashini29@gmail.com" className="text-rose-400 hover:text-rose-300 underline underline-offset-2">kalpanimadhubashini29@gmail.com</a>
+            </div>
+          </div>
+        </div>
+
         {/* Bottom copyright */}
         <div className="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© 2026 EduMaster Institute. All rights reserved. Sri Lanka Student & Institute Management System.</p>
+          <p>© 2026 EduMaster Institute. All rights reserved. Sri Lanka Student & Institute Management System. Developed by Kalpani M Liyanage.</p>
           <div className="flex items-center gap-4">
             <span>Powered by SIMS Smart Class Engine</span>
             <span className="text-emerald-500">🟢 Systems Online</span>
