@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React from 'react';
-import { MapPin, Phone, Mail, Shield, Award, Clock } from 'lucide-react';
+import { MapPin, Phone, Mail, Shield, Award, Clock, Github, Linkedin, Globe } from 'lucide-react';
 import { InstituteSettings } from '../types';
 
 interface FooterProps {
@@ -115,11 +115,45 @@ export const Footer: React.FC<FooterProps> = ({ settings, darkMode }) => {
             <p className="text-xs text-slate-400 mb-3">
               BICT Undergraduate — Faculty of Technology, University of Sri Jayewardenepura
             </p>
-            <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs">
-              <a href="https://github.com/kalpaniliyanage" target="_blank" rel="noreferrer" className="text-amber-400 hover:text-amber-300 underline underline-offset-2">GitHub</a>
-              <a href="https://www.linkedin.com/in/kalpani-m-liyanage/" target="_blank" rel="noreferrer" className="text-blue-400 hover:text-blue-300 underline underline-offset-2">LinkedIn</a>
-              <a href="https://personal-portfolio-r4by-git-main-kalpaniliyanages-projects.vercel.app/" target="_blank" rel="noreferrer" className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2">Portfolio</a>
-              <a href="mailto:kalpanimadhubashini29@gmail.com" className="text-rose-400 hover:text-rose-300 underline underline-offset-2">kalpanimadhubashini29@gmail.com</a>
+            <div className="flex flex-wrap gap-2.5 text-xs">
+              <a
+                href="https://github.com/kalpaniliyanage"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="GitHub profile of Kalpani M Liyanage"
+                className="group flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/70 px-3 py-2 font-bold text-slate-200 transition hover:-translate-y-0.5 hover:border-amber-400 hover:text-amber-300"
+              >
+                <Github className="w-4 h-4 text-amber-400 group-hover:scale-110 transition" />
+                <span>GitHub</span>
+              </a>
+              <a
+                href="https://www.linkedin.com/in/kalpani-m-liyanage/"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="LinkedIn profile of Kalpani M Liyanage"
+                className="group flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/70 px-3 py-2 font-bold text-slate-200 transition hover:-translate-y-0.5 hover:border-blue-400 hover:text-blue-300"
+              >
+                <Linkedin className="w-4 h-4 text-blue-400 group-hover:scale-110 transition" />
+                <span>LinkedIn</span>
+              </a>
+              <a
+                href="https://personal-portfolio-r4by-git-main-kalpaniliyanages-projects.vercel.app/"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Portfolio website of Kalpani M Liyanage"
+                className="group flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/70 px-3 py-2 font-bold text-slate-200 transition hover:-translate-y-0.5 hover:border-emerald-400 hover:text-emerald-300"
+              >
+                <Globe className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition" />
+                <span>Portfolio</span>
+              </a>
+              <a
+                href="mailto:kalpanimadhubashini29@gmail.com"
+                aria-label="Email Kalpani M Liyanage"
+                className="group flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/70 px-3 py-2 font-bold text-slate-200 transition hover:-translate-y-0.5 hover:border-rose-400 hover:text-rose-300"
+              >
+                <Mail className="w-4 h-4 text-rose-400 group-hover:scale-110 transition" />
+                <span>kalpanimadhubashini29@gmail.com</span>
+              </a>
             </div>
           </div>
         </div>
