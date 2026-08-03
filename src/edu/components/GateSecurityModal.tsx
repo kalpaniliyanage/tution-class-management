@@ -1,7 +1,46 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { Student, SubjectClass, PaymentRecord, AttendanceRecord } from '../types';
-import { Shield, QrCode, CheckCircle2, AlertOctagon, X, Send, Smartphone } from 'lucide-react';
+import { Shield, QrCode, CheckCircle2, AlertOctagon, X, Send, Smartphone, MessageCircle } from 'lucide-react';
+
+/** Normalise a Sri Lankan number to WhatsApp format 947XXXXXXXX (no +) */
+export const waNumber = (raw: string): string => {
+  const d = (raw || '').replace(/\D/g, '');
+  if (d.startsWith('94')) return d;
+  if (d.startsWith('0')) return `94${d.slice(1)}`;
+  if (d.length === 9) return `94${d}`;
+  return d;
+};
+
+export const buildParentWaMessage = (
+  studentName: string,
+  studentNumber: string,
+  className: string,
+  status: 'Present' | 'Absent',
+  instituteName = 'EduMaster Institute'
+) => {
+  const now = new Date();
+  const stamp = `${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  return status === 'Present'
+    ? `${instituteName} — Attendance Alert\n\nDear Parent,\nYour child ${studentName} (${studentNumber}) ARRIVED at class ${className} on ${stamp}. Gate entry confirmed ✅\n\nThank you.`
+    : `${instituteName} — Absent Alert\n\nDear Parent,\nYour child ${studentName} (${studentNumber}) is marked ABSENT for class ${className} on ${stamp} ❌\nPlease contact the institute office if this is unexpected.\n\nThank you.`;
+};
+
+export const openParentWhatsApp = (
+  phone: string,
+  studentName: string,
+  studentNumber: string,
+  className: string,
+  status: 'Present' | 'Absent'
+) => {
+  const num = waNumber(phone);
+  if (!num) {
+    alert('No parent WhatsApp number is stored for this student.');
+    return;
+  }
+  const text = encodeURIComponent(buildParentWaMessage(studentName, studentNumber, className, status));
+  window.open(`https://wa.me/${num}?text=${text}`, '_blank', 'noopener,noreferrer');
+};
 
 interface GateSecurityModalProps {
   students: Student[];
@@ -29,6 +68,10 @@ export const GateSecurityModal: React.FC<GateSecurityModalProps> = ({
     message: string;
     smsSent?: boolean;
   }>({ status: 'IDLE', message: 'Ready to scan student card at entrance gate...' });
+
+  const currentClassName = classes.find(c => c.id === selectedClassId)?.name || 'Class Session';
+  const rosterStudents = students.filter(s => (s.enrolledClassIds || []).includes(selectedClassId));
+
 
   const handleSimulateScan = () => {
     const student = students.find(s => s.studentNumber.toLowerCase() === scannedNumber.trim().toLowerCase());
@@ -204,8 +247,83 @@ export const GateSecurityModal: React.FC<GateSecurityModalProps> = ({
                   </div>
                 </div>
               )}
+
+              {scanResult.student && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => openParentWhatsApp(
+                      scanResult.student!.parentPhone,
+                      scanResult.student!.fullName,
+                      scanResult.student!.studentNumber,
+                      currentClassName,
+                      'Present'
+                    )}
+                    className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black px-3 py-2 rounded-xl text-[11px] shadow"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    Notify Parent — Present
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openParentWhatsApp(
+                      scanResult.student!.parentPhone,
+                      scanResult.student!.fullName,
+                      scanResult.student!.studentNumber,
+                      currentClassName,
+                      'Absent'
+                    )}
+                    className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-500 text-white font-black px-3 py-2 rounded-xl text-[11px] shadow"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    Notify Parent — Absent
+                  </button>
+                </div>
+              )}
             </div>
           )}
+
+          {/* Class roster — WhatsApp parent notification */}
+          <div className="space-y-2">
+            <h4 className="font-black text-xs flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-emerald-500" />
+              Notify Parents on WhatsApp — {currentClassName}
+            </h4>
+            <p className="text-[10px] opacity-70 font-semibold">
+              Opens WhatsApp with a ready-made message to the parent's number stored in the system.
+            </p>
+            <div className="max-h-60 overflow-y-auto rounded-2xl border border-slate-300 dark:border-slate-700 divide-y divide-slate-200 dark:divide-slate-800">
+              {rosterStudents.length === 0 && (
+                <p className="p-4 text-[11px] font-bold opacity-70">No students enrolled in this class.</p>
+              )}
+              {rosterStudents.map(s => (
+                <div key={s.id} className="flex items-center gap-3 p-3">
+                  <img src={s.photo} alt={s.fullName} className="w-9 h-9 rounded-lg object-cover shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-[12px] truncate">{s.fullName}</p>
+                    <p className="text-[10px] opacity-70 truncate">{s.studentNumber} • {s.parentName} • {s.parentPhone}</p>
+                  </div>
+                  <div className="flex gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => openParentWhatsApp(s.parentPhone, s.fullName, s.studentNumber, currentClassName, 'Present')}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-2.5 py-1.5 rounded-lg text-[10px]"
+                    >
+                      Present
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openParentWhatsApp(s.parentPhone, s.fullName, s.studentNumber, currentClassName, 'Absent')}
+                      className="bg-rose-600 hover:bg-rose-500 text-white font-black px-2.5 py-1.5 rounded-lg text-[10px]"
+                    >
+                      Absent
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
 
         </div>
 
