@@ -243,8 +243,83 @@ export const GateSecurityModal: React.FC<GateSecurityModalProps> = ({
                   </div>
                 </div>
               )}
+
+              {scanResult.student && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => openParentWhatsApp(
+                      scanResult.student!.parentPhone,
+                      scanResult.student!.fullName,
+                      scanResult.student!.studentNumber,
+                      currentClassName,
+                      'Present'
+                    )}
+                    className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black px-3 py-2 rounded-xl text-[11px] shadow"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    Notify Parent — Present
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openParentWhatsApp(
+                      scanResult.student!.parentPhone,
+                      scanResult.student!.fullName,
+                      scanResult.student!.studentNumber,
+                      currentClassName,
+                      'Absent'
+                    )}
+                    className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-500 text-white font-black px-3 py-2 rounded-xl text-[11px] shadow"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    Notify Parent — Absent
+                  </button>
+                </div>
+              )}
             </div>
           )}
+
+          {/* Class roster — WhatsApp parent notification */}
+          <div className="space-y-2">
+            <h4 className="font-black text-xs flex items-center gap-2">
+              <MessageCircle className="w-4 h-4 text-emerald-500" />
+              Notify Parents on WhatsApp — {currentClassName}
+            </h4>
+            <p className="text-[10px] opacity-70 font-semibold">
+              Opens WhatsApp with a ready-made message to the parent's number stored in the system.
+            </p>
+            <div className="max-h-60 overflow-y-auto rounded-2xl border border-slate-300 dark:border-slate-700 divide-y divide-slate-200 dark:divide-slate-800">
+              {rosterStudents.length === 0 && (
+                <p className="p-4 text-[11px] font-bold opacity-70">No students enrolled in this class.</p>
+              )}
+              {rosterStudents.map(s => (
+                <div key={s.id} className="flex items-center gap-3 p-3">
+                  <img src={s.photo} alt={s.fullName} className="w-9 h-9 rounded-lg object-cover shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-[12px] truncate">{s.fullName}</p>
+                    <p className="text-[10px] opacity-70 truncate">{s.studentNumber} • {s.parentName} • {s.parentPhone}</p>
+                  </div>
+                  <div className="flex gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => openParentWhatsApp(s.parentPhone, s.fullName, s.studentNumber, currentClassName, 'Present')}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-2.5 py-1.5 rounded-lg text-[10px]"
+                    >
+                      Present
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openParentWhatsApp(s.parentPhone, s.fullName, s.studentNumber, currentClassName, 'Absent')}
+                      className="bg-rose-600 hover:bg-rose-500 text-white font-black px-2.5 py-1.5 rounded-lg text-[10px]"
+                    >
+                      Absent
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
 
         </div>
 
