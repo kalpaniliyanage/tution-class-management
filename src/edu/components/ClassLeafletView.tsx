@@ -3,6 +3,8 @@ import React from 'react';
 import { SubjectClass, InstituteSettings } from '../types';
 import { Printer, Share2, X, Phone, MapPin, Calendar, Clock, CheckCircle2, Sparkles, QrCode } from 'lucide-react';
 import { generateQRCodeSvg, buildVerifyUrl } from '../utils/qr';
+import { openExternal } from './GateSecurityModal';
+
 
 interface ClassLeafletViewProps {
   cls: SubjectClass;
