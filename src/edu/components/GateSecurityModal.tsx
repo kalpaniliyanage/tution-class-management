@@ -1,7 +1,7 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { Student, SubjectClass, PaymentRecord, AttendanceRecord } from '../types';
-import { Shield, QrCode, CheckCircle2, AlertOctagon, X, Send, Smartphone, MessageCircle } from 'lucide-react';
+import { Shield, QrCode, CheckCircle2, AlertOctagon, X, Copy, Smartphone, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 
@@ -56,6 +56,15 @@ export const openExternal = (url: string) => {
   return true;
 };
 
+const copyParentMessage = async (message: string) => {
+  try {
+    await navigator.clipboard.writeText(message);
+    toast.success('Parent message copied. You can paste it into WhatsApp or Messages.');
+  } catch {
+    toast.error('Copy is unavailable. Please select and copy the message manually.');
+  }
+};
+
 export const openParentWhatsApp = (
   phone: string,
   studentName: string,
@@ -69,7 +78,66 @@ export const openParentWhatsApp = (
     return;
   }
   const text = encodeURIComponent(buildParentWaMessage(studentName, studentNumber, className, status));
-  openExternal(`https://wa.me/${num}?text=${text}`);
+  openExternal(`https://api.whatsapp.com/send?phone=${num}&text=${text}`);
+};
+
+export const openParentSms = (
+  phone: string,
+  studentName: string,
+  studentNumber: string,
+  className: string,
+  status: 'Present' | 'Absent'
+) => {
+  const number = (phone || '').replace(/[^+\d]/g, '');
+  if (!number) {
+    toast.error('No parent phone number is stored for this student.');
+    return;
+  }
+  const message = buildParentWaMessage(studentName, studentNumber, className, status);
+  window.location.href = `sms:${number}?body=${encodeURIComponent(message)}`;
+};
+
+const ParentNotifyActions = ({ student, className, status }: {
+  student: Student;
+  className: string;
+  status: 'Present' | 'Absent';
+}) => {
+  const message = buildParentWaMessage(student.fullName, student.studentNumber, className, status);
+  const statusClass = status === 'Present'
+    ? 'bg-emerald-600 hover:bg-emerald-500'
+    : 'bg-rose-600 hover:bg-rose-500';
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      <button
+        type="button"
+        onClick={() => openParentWhatsApp(student.parentPhone, student.fullName, student.studentNumber, className, status)}
+        className={`flex items-center gap-1 text-white font-black px-2.5 py-1.5 rounded-lg text-[10px] ${statusClass}`}
+        title={`Open ${status} message in WhatsApp`}
+      >
+        <MessageCircle className="w-3 h-3" />
+        WhatsApp {status}
+      </button>
+      <button
+        type="button"
+        onClick={() => openParentSms(student.parentPhone, student.fullName, student.studentNumber, className, status)}
+        className="flex items-center gap-1 bg-blue-600 hover:bg-blue-500 text-white font-black px-2.5 py-1.5 rounded-lg text-[10px]"
+        title="Open this message in your phone's SMS app"
+      >
+        <Smartphone className="w-3 h-3" />
+        SMS
+      </button>
+      <button
+        type="button"
+        onClick={() => copyParentMessage(message)}
+        className="flex items-center gap-1 bg-slate-700 hover:bg-slate-600 text-white font-black px-2.5 py-1.5 rounded-lg text-[10px]"
+        title="Copy the parent message"
+      >
+        <Copy className="w-3 h-3" />
+        Copy
+      </button>
+    </div>
+  );
 };
 
 
@@ -128,7 +196,7 @@ export const GateSecurityModal: React.FC<GateSecurityModalProps> = ({
         isPaid: true,
         status: 'GRANTED',
         message: `TURNSTILE UNLOCKED ✔ Welcome ${student.fullName}. Gate attendance logged.`,
-        smsSent: true
+        smsSent: false
       });
     } else {
       onMarkAttendance(student.id, currentClass.id, 'Absent');
@@ -136,8 +204,8 @@ export const GateSecurityModal: React.FC<GateSecurityModalProps> = ({
         student,
         isPaid: false,
         status: 'OVERDUE',
-        message: `OVERDUE PAYMENT ALERT 🔴 Gate locked. Parent SMS dispatched to ${student.parentPhone}`,
-        smsSent: true
+        message: `OVERDUE PAYMENT ALERT 🔴 Gate locked. Choose WhatsApp, SMS, or Copy below to notify the parent.`,
+        smsSent: false
       });
     }
   };
@@ -179,7 +247,7 @@ export const GateSecurityModal: React.FC<GateSecurityModalProps> = ({
               1. Student presents physical ID card or digital QR code at entrance gate.<br />
               2. System verifies payment card status in sub-150ms database lookup.<br />
               3. Turnstile opens for paid students. Unpaid students trigger security officer alert.<br />
-              4. Automated SMS is instantly dispatched to parent's phone.
+              4. Staff can notify the parent using WhatsApp, the phone's SMS app, or a copied message.
             </p>
           </div>
 
@@ -238,7 +306,7 @@ export const GateSecurityModal: React.FC<GateSecurityModalProps> = ({
               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 rounded-2xl text-sm shadow-lg transition flex items-center justify-center gap-2"
             >
               <QrCode className="w-4 h-4" />
-              <span>Simulate Entrance Gate Scan & Dispatch Parent SMS</span>
+              <span>Simulate Entrance Gate Scan</span>
             </button>
 
           </div>
@@ -269,46 +337,18 @@ export const GateSecurityModal: React.FC<GateSecurityModalProps> = ({
                   <div className="space-y-0.5">
                     <p className="font-bold text-sm">{scanResult.student.fullName}</p>
                     <p className="text-[11px] opacity-80">{scanResult.student.studentNumber} | Parent: {scanResult.student.parentPhone}</p>
-                    {scanResult.smsSent && (
-                      <p className="text-[10px] font-extrabold text-blue-600 dark:text-blue-400 flex items-center gap-1">
-                        <Send className="w-3 h-3" />
-                        <span>Parent SMS Alert Sent to {scanResult.student.parentPhone}</span>
-                      </p>
-                    )}
+                    <p className="text-[10px] font-extrabold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                      <Smartphone className="w-3 h-3" />
+                      <span>Parent contact ready: {scanResult.student.parentPhone}</span>
+                    </p>
                   </div>
                 </div>
               )}
 
               {scanResult.student && (
-                <div className="flex flex-wrap gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => openParentWhatsApp(
-                      scanResult.student!.parentPhone,
-                      scanResult.student!.fullName,
-                      scanResult.student!.studentNumber,
-                      currentClassName,
-                      'Present'
-                    )}
-                    className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black px-3 py-2 rounded-xl text-[11px] shadow"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    Notify Parent — Present
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => openParentWhatsApp(
-                      scanResult.student!.parentPhone,
-                      scanResult.student!.fullName,
-                      scanResult.student!.studentNumber,
-                      currentClassName,
-                      'Absent'
-                    )}
-                    className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-500 text-white font-black px-3 py-2 rounded-xl text-[11px] shadow"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    Notify Parent — Absent
-                  </button>
+                <div className="space-y-2 pt-2">
+                  <ParentNotifyActions student={scanResult.student} className={currentClassName} status="Present" />
+                  <ParentNotifyActions student={scanResult.student} className={currentClassName} status="Absent" />
                 </div>
               )}
             </div>
@@ -318,10 +358,10 @@ export const GateSecurityModal: React.FC<GateSecurityModalProps> = ({
           <div className="space-y-2">
             <h4 className="font-black text-xs flex items-center gap-2">
               <MessageCircle className="w-4 h-4 text-emerald-500" />
-              Notify Parents on WhatsApp — {currentClassName}
+              Notify Parents — {currentClassName}
             </h4>
             <p className="text-[10px] opacity-70 font-semibold">
-              Opens WhatsApp with a ready-made message to the parent's number stored in the system.
+              Use WhatsApp, open the phone's SMS composer, or copy the ready-made message. Sending is confirmed in the selected app.
             </p>
             <div className="max-h-60 overflow-y-auto rounded-2xl border border-slate-300 dark:border-slate-700 divide-y divide-slate-200 dark:divide-slate-800">
               {rosterStudents.length === 0 && (
@@ -334,21 +374,9 @@ export const GateSecurityModal: React.FC<GateSecurityModalProps> = ({
                     <p className="font-bold text-[12px] truncate">{s.fullName}</p>
                     <p className="text-[10px] opacity-70 truncate">{s.studentNumber} • {s.parentName} • {s.parentPhone}</p>
                   </div>
-                  <div className="flex gap-1.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => openParentWhatsApp(s.parentPhone, s.fullName, s.studentNumber, currentClassName, 'Present')}
-                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-2.5 py-1.5 rounded-lg text-[10px]"
-                    >
-                      Present
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openParentWhatsApp(s.parentPhone, s.fullName, s.studentNumber, currentClassName, 'Absent')}
-                      className="bg-rose-600 hover:bg-rose-500 text-white font-black px-2.5 py-1.5 rounded-lg text-[10px]"
-                    >
-                      Absent
-                    </button>
+                   <div className="space-y-1.5 shrink-0">
+                     <ParentNotifyActions student={s} className={currentClassName} status="Present" />
+                     <ParentNotifyActions student={s} className={currentClassName} status="Absent" />
                   </div>
                 </div>
               ))}
