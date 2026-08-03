@@ -65,7 +65,7 @@ export const ClassLeafletView: React.FC<ClassLeafletViewProps> = ({
 
   const handleWhatsAppShare = () => {
     const text = `*${settings.name} - Class Flyer*\n\n📘 *Class:* ${cls.name}\n👨‍🏫 *Teacher:* ${cls.teacherName} (${cls.teacherQualifications})\n🗓️ *Schedule:* Every ${cls.dayOfWeek} (${cls.startTime} - ${cls.endTime})\n🏛️ *Location:* ${cls.hallName}, ${settings.address}\n💰 *Fee:* Rs. ${cls.monthlyFee.toLocaleString()} / Month\n\n📞 *Contact:* ${settings.phonePrimary}`;
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+    openExternal(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
   };
 
   return (
