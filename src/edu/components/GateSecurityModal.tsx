@@ -1,7 +1,46 @@
 // @ts-nocheck
 import React, { useState } from 'react';
 import { Student, SubjectClass, PaymentRecord, AttendanceRecord } from '../types';
-import { Shield, QrCode, CheckCircle2, AlertOctagon, X, Send, Smartphone } from 'lucide-react';
+import { Shield, QrCode, CheckCircle2, AlertOctagon, X, Send, Smartphone, MessageCircle } from 'lucide-react';
+
+/** Normalise a Sri Lankan number to WhatsApp format 947XXXXXXXX (no +) */
+export const waNumber = (raw: string): string => {
+  const d = (raw || '').replace(/\D/g, '');
+  if (d.startsWith('94')) return d;
+  if (d.startsWith('0')) return `94${d.slice(1)}`;
+  if (d.length === 9) return `94${d}`;
+  return d;
+};
+
+export const buildParentWaMessage = (
+  studentName: string,
+  studentNumber: string,
+  className: string,
+  status: 'Present' | 'Absent',
+  instituteName = 'EduMaster Institute'
+) => {
+  const now = new Date();
+  const stamp = `${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  return status === 'Present'
+    ? `${instituteName} — Attendance Alert\n\nDear Parent,\nYour child ${studentName} (${studentNumber}) ARRIVED at class ${className} on ${stamp}. Gate entry confirmed ✅\n\nThank you.`
+    : `${instituteName} — Absent Alert\n\nDear Parent,\nYour child ${studentName} (${studentNumber}) is marked ABSENT for class ${className} on ${stamp} ❌\nPlease contact the institute office if this is unexpected.\n\nThank you.`;
+};
+
+export const openParentWhatsApp = (
+  phone: string,
+  studentName: string,
+  studentNumber: string,
+  className: string,
+  status: 'Present' | 'Absent'
+) => {
+  const num = waNumber(phone);
+  if (!num) {
+    alert('No parent WhatsApp number is stored for this student.');
+    return;
+  }
+  const text = encodeURIComponent(buildParentWaMessage(studentName, studentNumber, className, status));
+  window.open(`https://wa.me/${num}?text=${text}`, '_blank', 'noopener,noreferrer');
+};
 
 interface GateSecurityModalProps {
   students: Student[];
