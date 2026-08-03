@@ -69,6 +69,10 @@ export const GateSecurityModal: React.FC<GateSecurityModalProps> = ({
     smsSent?: boolean;
   }>({ status: 'IDLE', message: 'Ready to scan student card at entrance gate...' });
 
+  const currentClassName = classes.find(c => c.id === selectedClassId)?.name || 'Class Session';
+  const rosterStudents = students.filter(s => (s.enrolledClassIds || []).includes(selectedClassId));
+
+
   const handleSimulateScan = () => {
     const student = students.find(s => s.studentNumber.toLowerCase() === scannedNumber.trim().toLowerCase());
     if (!student) {
