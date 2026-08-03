@@ -26,6 +26,34 @@ export const buildParentWaMessage = (
     : `${instituteName} — Absent Alert\n\nDear Parent,\nYour child ${studentName} (${studentNumber}) is marked ABSENT for class ${className} on ${stamp} ❌\nPlease contact the institute office if this is unexpected.\n\nThank you.`;
 };
 
+/** Opens a URL in a new tab in a way that survives most popup blockers,
+ *  and falls back to copying the link when the browser/preview iframe blocks it. */
+export const openExternal = (url: string) => {
+  try {
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    return true;
+  } catch {
+    /* ignore */
+  }
+  const win = window.open(url, '_blank', 'noopener,noreferrer');
+  if (!win) {
+    try {
+      navigator.clipboard?.writeText(url);
+    } catch {
+      /* ignore */
+    }
+    toast.error('Your browser blocked the WhatsApp popup. The link was copied — paste it in a new tab, or allow pop-ups for this site.');
+    return false;
+  }
+  return true;
+};
+
 export const openParentWhatsApp = (
   phone: string,
   studentName: string,
@@ -35,12 +63,13 @@ export const openParentWhatsApp = (
 ) => {
   const num = waNumber(phone);
   if (!num) {
-    alert('No parent WhatsApp number is stored for this student.');
+    toast.error('No parent WhatsApp number is stored for this student.');
     return;
   }
   const text = encodeURIComponent(buildParentWaMessage(studentName, studentNumber, className, status));
-  window.open(`https://wa.me/${num}?text=${text}`, '_blank', 'noopener,noreferrer');
+  openExternal(`https://wa.me/${num}?text=${text}`);
 };
+
 
 interface GateSecurityModalProps {
   students: Student[];
