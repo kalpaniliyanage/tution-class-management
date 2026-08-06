@@ -180,7 +180,7 @@ export const AIChatWidget: React.FC<{ darkMode?: boolean }> = ({ darkMode = true
                 <div className={`max-w-[85%] whitespace-pre-wrap text-[12px] leading-relaxed font-medium px-3 py-2 rounded-2xl ${
                   m.role === 'user' ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-br-sm' : `${bubbleBot} rounded-bl-sm`
                 }`}>
-                  {m.content || '…'}
+                  {(m.content || '…').replace(/\*\*(.+?)\*\*/g, '$1').replace(/^\s*[*-]\s+/gm, '• ')}
                 </div>
               </div>
             ))}
