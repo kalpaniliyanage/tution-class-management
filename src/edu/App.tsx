@@ -20,6 +20,7 @@ import {
   getStoredFreeCards, saveStoredFreeCards
 } from './utils/storage';
 import { seedCollectionToFirestore, subscribeToCollection, bulkSyncToFirestore } from './lib/firebaseSync';
+import { dispatchSms } from './utils/sms';
 
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -31,8 +32,8 @@ import { StudentIDCardView } from './components/StudentIDCardView';
 import { WallOfFame } from './components/WallOfFame';
 import { GateSecurityModal } from './components/GateSecurityModal';
 import { LoginModal } from './components/LoginModal';
-import { AIChatWidget } from './components/AIChatWidget';
 import { QRScannerModal } from './components/QRScannerModal';
+import { AIChatbot } from './components/AIChatbot';
 
 import { AdminPortal } from './components/AdminPortal';
 import { TeacherPortal } from './components/TeacherPortal';
@@ -69,45 +70,47 @@ export default function App() {
   const [showQRScanner, setShowQRScanner] = useState<boolean>(false);
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
 
-  // Persistence Effects (local cache + shared cloud)
+  // Persistence Effects
   useEffect(() => { saveStoredClasses(classes); bulkSyncToFirestore('classes', classes); }, [classes]);
   useEffect(() => { saveStoredTeachers(teachers); bulkSyncToFirestore('teachers', teachers); }, [teachers]);
   useEffect(() => { saveStoredStudents(students); bulkSyncToFirestore('students', students); }, [students]);
   useEffect(() => { saveStoredPayments(payments); bulkSyncToFirestore('payments', payments); }, [payments]);
   useEffect(() => { saveStoredAttendance(attendance); bulkSyncToFirestore('attendance', attendance); }, [attendance]);
-  useEffect(() => { saveStoredExams(exams); bulkSyncToFirestore('exams', exams); }, [exams]);
-  useEffect(() => { saveStoredSettings(settings); bulkSyncToFirestore('settings', settings); }, [settings]);
+  useEffect(() => { saveStoredExams(exams); }, [exams]);
+  useEffect(() => { saveStoredSettings(settings); }, [settings]);
   useEffect(() => { saveStoredNotices(notices); bulkSyncToFirestore('notices', notices); }, [notices]);
-  useEffect(() => { saveStoredWallOfFame(wallOfFame); bulkSyncToFirestore('wallOfFame', wallOfFame); }, [wallOfFame]);
-  useEffect(() => { saveStoredTutes(tutes); bulkSyncToFirestore('tutes', tutes); }, [tutes]);
-  useEffect(() => { saveStoredHalls(halls); bulkSyncToFirestore('halls', halls); }, [halls]);
-  useEffect(() => { saveStoredFreeCards(freeCards); bulkSyncToFirestore('freeCards', freeCards); }, [freeCards]);
+  useEffect(() => { saveStoredWallOfFame(wallOfFame); }, [wallOfFame]);
+  useEffect(() => { saveStoredTutes(tutes); }, [tutes]);
+  useEffect(() => { saveStoredHalls(halls); }, [halls]);
+  useEffect(() => { saveStoredFreeCards(freeCards); }, [freeCards]);
 
-  // Lovable Cloud realtime sync — same data on every phone & account
+  // Firebase Realtime Cloud Sync Initializer
   useEffect(() => {
-    const collections: [string, unknown, (v: never) => void][] = [
-      ['students', students, setStudents],
-      ['teachers', teachers, setTeachers],
-      ['classes', classes, setClasses],
-      ['attendance', attendance, setAttendance],
-      ['payments', payments, setPayments],
-      ['notices', notices, setNotices],
-      ['exams', exams, setExams],
-      ['settings', settings, setSettings],
-      ['wallOfFame', wallOfFame, setWallOfFame],
-      ['tutes', tutes, setTutes],
-      ['halls', halls, setHalls],
-      ['freeCards', freeCards, setFreeCards],
-    ];
+    // Seed initial local data to Firestore if empty
+    seedCollectionToFirestore('students', students);
+    seedCollectionToFirestore('teachers', teachers);
+    seedCollectionToFirestore('classes', classes);
+    seedCollectionToFirestore('attendance', attendance);
+    seedCollectionToFirestore('payments', payments);
+    seedCollectionToFirestore('notices', notices);
 
-    collections.forEach(([name, local, setter]) => {
-      seedCollectionToFirestore(name, local, setter);
-    });
+    // Subscribe to Firestore changes across multi-device sessions
+    const unsubStudents = subscribeToCollection<Student>('students', setStudents);
+    const unsubTeachers = subscribeToCollection<Teacher>('teachers', setTeachers);
+    const unsubClasses = subscribeToCollection<SubjectClass>('classes', setClasses);
+    const unsubAttendance = subscribeToCollection<AttendanceRecord>('attendance', setAttendance);
+    const unsubPayments = subscribeToCollection<PaymentRecord>('payments', setPayments);
+    const unsubNotices = subscribeToCollection<Notice>('notices', setNotices);
 
-    const unsubs = collections.map(([name, , setter]) => subscribeToCollection(name, setter));
-    return () => unsubs.forEach(u => u());
+    return () => {
+      unsubStudents();
+      unsubTeachers();
+      unsubClasses();
+      unsubAttendance();
+      unsubPayments();
+      unsubNotices();
+    };
   }, []);
-
 
   // Dark Mode side effect
   useEffect(() => {
@@ -179,8 +182,13 @@ export default function App() {
     const student = students.find(s => s.id === studentId);
     const cls = classes.find(c => c.id === classId);
 
+    const recordId = `att-${Date.now()}`;
+    const smsText = status === 'Present'
+      ? `EduMaster: ${student?.fullName} checked in at the institute gate at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} for ${cls?.name || 'class'}.`
+      : `EduMaster: Dear Parent, ${student?.fullName} was ABSENT today for ${cls?.name || 'class'}.`;
+
     const newRecord: AttendanceRecord = {
-      id: `att-${Date.now()}`,
+      id: recordId,
       studentId,
       studentName: student?.fullName || '',
       studentNumber: student?.studentNumber || '',
@@ -189,13 +197,17 @@ export default function App() {
       date: new Date().toISOString().split('T')[0],
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       status,
-      smsSent: true,
-      smsLogMessage: status === 'Present'
-        ? `SMS Dispatched to ${student?.parentPhone}: Student ${student?.fullName} checked in at EduMaster Gate.`
-        : `SMS ALERT sent to ${student?.parentPhone}: Dear Parent, ${student?.fullName} was ABSENT today for ${cls?.name}.`
+      smsSent: false,
+      smsLogMessage: `Sending SMS to ${student?.parentPhone}...`
     };
 
     setAttendance(prev => [newRecord, ...prev]);
+
+    dispatchSms(student?.parentPhone || '', smsText).then(log => {
+      setAttendance(prev => prev.map(a =>
+        a.id === recordId ? { ...a, smsSent: log.startsWith('SMS DELIVERED'), smsLogMessage: log } : a
+      ));
+    });
   };
 
   // Select Role Handler
@@ -215,6 +227,64 @@ export default function App() {
   const activeNotice = notices.find(n => n.isHeaderBanner) || notices[0];
   const activeStudent = students.find(s => s.id === activeStudentId) || students[0];
   const activeTeacher = teachers.find(t => t.id === activeTeacherId) || teachers[0];
+
+  // Context handed to the AI assistant (never includes passwords/PINs)
+  const buildAiContext = (): string => {
+    const lines: string[] = [];
+    lines.push(`Institute: ${settings?.instituteName || 'EduMaster'}`);
+    lines.push(
+      `Classes (${classes.length}): ` +
+        classes
+          .slice(0, 25)
+          .map(c => `${c.name} [${c.subject || ''} ${c.grade || ''}] ${c.dayOfWeek || ''} ${c.startTime || ''}-${c.endTime || ''} Rs.${c.monthlyFee || 0} with ${c.teacherName || 'teacher'}`)
+          .join(' | ')
+    );
+    if (notices.length) {
+      lines.push('Notices: ' + notices.slice(0, 5).map(n => `${n.title}: ${n.message}`).join(' | '));
+    }
+
+    if (currentRole === 'admin') {
+      lines.push(`Totals: ${students.length} students, ${teachers.length} teachers, ${payments.length} payment records, ${attendance.length} attendance records.`);
+      lines.push(
+        'Recent payments: ' +
+          payments.slice(0, 15).map(p => `${p.studentName} - ${p.className} - ${p.month} - ${p.status}`).join(' | ')
+      );
+      lines.push(
+        'Recent attendance: ' +
+          attendance.slice(0, 15).map(a => `${a.studentName} ${a.className} ${a.date} ${a.status}`).join(' | ')
+      );
+      lines.push(`Free cards awarded: ${freeCards.length}`);
+    }
+
+    if (currentRole === 'teacher' && activeTeacher) {
+      const myClasses = classes.filter(c => c.teacherId === activeTeacher.id);
+      lines.push(`Teacher: ${activeTeacher.fullName}, subjects: ${(activeTeacher.subjects || []).join(', ')}`);
+      lines.push('My classes: ' + myClasses.map(c => c.name).join(', '));
+      lines.push('My uploaded materials: ' + tutes.slice(0, 20).map(t => `${t.title} (${t.className || ''})`).join(' | '));
+    }
+
+    if ((currentRole === 'student' || currentRole === 'parent') && activeStudent) {
+      const myClasses = classes.filter(c => activeStudent.enrolledClassIds?.includes(c.id));
+      lines.push(`Student: ${activeStudent.fullName} (${activeStudent.studentNumber || ''}), grade ${activeStudent.grade || ''}`);
+      lines.push('Enrolled classes: ' + myClasses.map(c => `${c.name} ${c.dayOfWeek || ''} ${c.startTime || ''} Rs.${c.monthlyFee || 0}`).join(' | '));
+      lines.push(
+        'Payments: ' +
+          payments.filter(p => p.studentId === activeStudent.id).slice(0, 15).map(p => `${p.className} ${p.month} ${p.status}`).join(' | ')
+      );
+      lines.push(
+        'Attendance: ' +
+          attendance.filter(a => a.studentId === activeStudent.id).slice(0, 15).map(a => `${a.className} ${a.date} ${a.status}`).join(' | ')
+      );
+      lines.push(
+        'Marks: ' +
+          exams.filter(e => e.studentId === activeStudent.id).slice(0, 15).map(e => `${e.examName || ''} ${e.subject || ''} ${e.marks ?? ''}`).join(' | ')
+      );
+    }
+
+    return lines.join('\n').slice(0, 5800);
+  };
+
+
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-200 ${darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
@@ -311,7 +381,7 @@ export default function App() {
             onUpdateClassBadges={handleUpdateClassBadges}
             exams={exams}
             freeCards={freeCards}
-            onAddFreeCard={award => setFreeCards(prev => [award, ...prev])}
+            onAddFreeCard={award => setFreeCards(prev => [award, ...prev.filter(f => f.id !== award.id)])}
             onDeleteFreeCard={id => setFreeCards(prev => prev.filter(f => f.id !== id))}
           />
         )}
@@ -344,7 +414,6 @@ export default function App() {
             darkMode={darkMode}
             onOpenPaymentCard={() => setSelectedPaymentCardStudent(activeStudent)}
             onOpenIDCard={() => setSelectedIDCardStudent(activeStudent)}
-            onUpdateStudent={updated => setStudents(prev => prev.map(s => s.id === updated.id ? updated : s))}
           />
         )}
 
@@ -417,8 +486,6 @@ export default function App() {
         />
       )}
 
-      <AIChatWidget darkMode={darkMode} />
-
       {showLoginModal && (
         <LoginModal
           darkMode={darkMode}
@@ -430,6 +497,10 @@ export default function App() {
         />
       )}
 
+      {/* AI Assistant — available in every portal */}
+      <AIChatbot portal={currentRole} context={buildAiContext()} darkMode={darkMode} />
+
     </div>
+
   );
 }
