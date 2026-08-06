@@ -319,9 +319,33 @@ export const PaymentCardView: React.FC<PaymentCardViewProps> = ({
                 border: '0.3mm solid #0f172a',
               }}
             >
-              <div className="bg-gradient-to-r from-emerald-700 to-teal-700 text-white px-2.5 py-1 flex items-center justify-between">
+              {/* Subject artwork watermark */}
+              {activeClass.coverImage && (
+                <img
+                  src={activeClass.coverImage}
+                  alt=""
+                  aria-hidden
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{ opacity: 0.1 }}
+                />
+              )}
+              <div
+                className="absolute inset-y-0 right-0"
+                style={{ width: '18mm', background: 'linear-gradient(135deg, rgba(251,191,36,0.20), rgba(4,120,87,0.12))' }}
+                aria-hidden
+              />
+
+              <div className="relative bg-gradient-to-r from-emerald-700 via-emerald-700 to-teal-700 text-white px-2.5 py-1 flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-4 h-4 rounded-[1mm] bg-amber-400 text-slate-950 font-black text-[8px] flex items-center justify-center">$</div>
+                  {activeClass.coverImage || student.photo ? (
+                    <img
+                      src={activeClass.coverImage || student.photo}
+                      alt=""
+                      className="w-4 h-4 rounded-[1mm] object-cover border border-amber-300"
+                    />
+                  ) : (
+                    <div className="w-4 h-4 rounded-[1mm] bg-amber-400 text-slate-950 font-black text-[8px] flex items-center justify-center">$</div>
+                  )}
                   <div className="leading-tight">
                     <p className="text-[7px] font-black uppercase tracking-wider">{settings.name}</p>
                     <p className="text-[5.5px] font-black text-amber-300 tracking-widest uppercase">Monthly Payment Card</p>
@@ -332,7 +356,8 @@ export const PaymentCardView: React.FC<PaymentCardViewProps> = ({
                 }`}>{isPaid ? 'PAID' : 'DUE'}</span>
               </div>
 
-              <div className="px-2.5 py-1.5 flex gap-2">
+              <div className="relative px-2.5 py-1.5 flex gap-2">
+
                 <div className="flex-1 min-w-0 space-y-[3px]">
                   <div>
                     <p className="text-[5px] font-black text-slate-500 uppercase tracking-widest">Student</p>
