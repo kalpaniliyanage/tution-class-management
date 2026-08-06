@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useRef, useState } from 'react';
-import { UploadCloud, X, Image as ImageIcon } from 'lucide-react';
+import { UploadCloud, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 
 interface ImageDropzoneProps {
   value: string;
@@ -9,19 +9,46 @@ interface ImageDropzoneProps {
   hint?: string;
 }
 
-const MAX_BYTES = 2 * 1024 * 1024; // 2MB
+const MAX_BYTES = 8 * 1024 * 1024; // 8MB source file
+const MAX_EDGE = 640; // stored photo edge in px (keeps cloud sync fast)
+
+/** Downscale + compress so photos stay small enough to sync to every device. */
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read that file.'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('That file is not a readable image.'));
+      img.onload = () => {
+        const scale = Math.min(1, MAX_EDGE / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = String(reader.result || '');
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
 export const ImageDropzone: React.FC<ImageDropzoneProps> = ({
   value,
   onChange,
   label = 'Student Photo',
-  hint = 'Drag & drop a photo here, or click to browse (JPG / PNG, max 2MB)'
+  hint = 'Drag & drop a photo, or click to browse — it is saved to the cloud so it shows on every phone.'
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isOver, setIsOver] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const readFile = (file?: File) => {
+  const readFile = async (file?: File) => {
     setError('');
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -29,12 +56,17 @@ export const ImageDropzone: React.FC<ImageDropzoneProps> = ({
       return;
     }
     if (file.size > MAX_BYTES) {
-      setError('Image too large. Please use a file under 2MB.');
+      setError('Image too large. Please use a file under 8MB.');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => onChange(String(reader.result || ''));
-    reader.readAsDataURL(file);
+    setBusy(true);
+    try {
+      onChange(await compressImage(file));
+    } catch (e) {
+      setError(e?.message || 'Could not process that image.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -60,14 +92,14 @@ export const ImageDropzone: React.FC<ImageDropzoneProps> = ({
           <img src={value} alt="Preview" className="w-16 h-16 rounded-xl object-cover border border-slate-300 dark:border-slate-700 shrink-0" />
         ) : (
           <div className="w-16 h-16 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center shrink-0">
-            <ImageIcon className="w-6 h-6 text-slate-400" />
+            {busy ? <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" /> : <ImageIcon className="w-6 h-6 text-slate-400" />}
           </div>
         )}
 
         <div className="min-w-0">
           <p className="flex items-center gap-1.5 font-black text-xs text-slate-700 dark:text-slate-200">
             <UploadCloud className="w-4 h-4 text-emerald-500" />
-            {value ? 'Photo attached — click or drop to replace' : 'Drop image here / click to upload'}
+            {busy ? 'Optimising photo…' : value ? 'Photo attached — click or drop to replace' : 'Drop image here / click to upload'}
           </p>
           <p className="text-[10px] text-slate-500 mt-0.5">{hint}</p>
         </div>
@@ -88,6 +120,7 @@ export const ImageDropzone: React.FC<ImageDropzoneProps> = ({
         ref={inputRef}
         type="file"
         accept="image/*"
+        capture={undefined}
         className="hidden"
         onChange={e => readFile(e.target.files?.[0])}
       />
