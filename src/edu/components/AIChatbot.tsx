@@ -23,8 +23,8 @@ const SUGGESTIONS: Record<string, string[]> = {
   admin: ['How do I add a new student?', 'Who has not paid this month?', 'How does the free card work?'],
   teacher: ['How do I upload a tute PDF?', 'How do I mark attendance?', 'Show my class list'],
   student: ['What are my class times?', 'Are my payments up to date?', 'Where can I get my papers?'],
-  parent: ['Is my child attending classes?', 'What is the fee for this month?', 'How do SMS alerts work?'],
-  guest: ['What classes do you offer?', 'What are the class times?', 'How do I register?'],
+  parent: ['Is my child attending classes?', 'What is the fee for this month?', 'How do I register my child?'],
+  guest: ['How do I register?', 'What classes do you offer?', 'What are the class times?'],
 };
 
 export const AIChatbot: React.FC<Props> = ({ portal, context = '', darkMode = true }) => {
