@@ -233,6 +233,20 @@ export default function App() {
     const lines: string[] = [];
     lines.push(`Institute: ${settings?.instituteName || 'EduMaster'}`);
     lines.push(
+      'Institute office / administrator contact: ' +
+        [
+          settings?.address ? `Address: ${settings.address}` : '',
+          settings?.phonePrimary ? `Primary hotline: ${settings.phonePrimary}` : '',
+          settings?.phoneSecondary ? `Second helpline: ${settings.phoneSecondary}` : '',
+          settings?.email ? `Email: ${settings.email}` : '',
+        ]
+          .filter(Boolean)
+          .join(' | ')
+    );
+    lines.push(
+      'Registration rule: students cannot self-register online. New students must contact the institute administrator (office counter, hotline or email above), bring NIC/birth certificate copy, school details and a photo, and the admin adds them in the Admin Portal. After registration the admin gives the student number and login PIN, and the parent phone is added for SMS alerts.'
+    );
+    lines.push(
       `Classes (${classes.length}): ` +
         classes
           .slice(0, 25)
