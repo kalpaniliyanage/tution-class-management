@@ -344,6 +344,7 @@ export default function App() {
             darkMode={darkMode}
             onOpenPaymentCard={() => setSelectedPaymentCardStudent(activeStudent)}
             onOpenIDCard={() => setSelectedIDCardStudent(activeStudent)}
+            onUpdateStudent={updated => setStudents(prev => prev.map(s => s.id === updated.id ? updated : s))}
           />
         )}
 

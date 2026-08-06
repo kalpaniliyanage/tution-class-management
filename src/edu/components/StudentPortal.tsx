@@ -5,6 +5,8 @@ import { GraduationCap, CreditCard, QrCode, Download, Award, Calendar, CheckCirc
 import { RoleDashboard, PaymentStatusPanel } from './DashboardWidgets';
 import { AccessCodeCard } from './AccessCodeCard';
 import { studentCode } from '../utils/auth';
+import { ImageDropzone } from './ImageDropzone';
+import { Camera } from 'lucide-react';
 
 
 interface StudentPortalProps {
@@ -17,6 +19,7 @@ interface StudentPortalProps {
   darkMode: boolean;
   onOpenPaymentCard: () => void;
   onOpenIDCard: () => void;
+  onUpdateStudent?: (s: Student) => void;
 }
 
 export const StudentPortal: React.FC<StudentPortalProps> = ({
@@ -28,8 +31,10 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
   attendance = [],
   darkMode,
   onOpenPaymentCard,
-  onOpenIDCard
+  onOpenIDCard,
+  onUpdateStudent
 }) => {
+  const [showPhotoEditor, setShowPhotoEditor] = useState(false);
   // A student receives PDFs only for classes they actually participated in
   // (attendance marked Present/Late), falling back to their enrolled classes.
   const attendedClassIds = new Set(
@@ -61,6 +66,35 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({
           </div>
         </div>
 
+
+        {/* Own photo upload for the ID card */}
+        {onUpdateStudent && (
+          <div className="w-full md:max-w-xs">
+            {showPhotoEditor ? (
+              <div className={`p-3 rounded-2xl border ${darkMode ? 'border-slate-700 bg-slate-950' : 'border-slate-200 bg-slate-50'}`}>
+                <ImageDropzone
+                  label="My ID card photo"
+                  value={student.photo || ''}
+                  onChange={val => onUpdateStudent({ ...student, photo: val })}
+                  hint="Saved to the cloud — appears on your ID card on every device."
+                />
+                <button
+                  onClick={() => setShowPhotoEditor(false)}
+                  className="mt-2 w-full text-[11px] font-black px-3 py-2 rounded-xl bg-emerald-600 text-white"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowPhotoEditor(true)}
+                className="flex items-center gap-1.5 text-xs font-black px-3.5 py-2 rounded-xl border border-emerald-500/40 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-500/10 transition"
+              >
+                <Camera className="w-4 h-4" /> Upload my photo
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Quick Card Triggers */}
         <div className="flex items-center gap-2 flex-wrap">
