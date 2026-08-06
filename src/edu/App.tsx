@@ -31,6 +31,7 @@ import { StudentIDCardView } from './components/StudentIDCardView';
 import { WallOfFame } from './components/WallOfFame';
 import { GateSecurityModal } from './components/GateSecurityModal';
 import { LoginModal } from './components/LoginModal';
+import { AIChatWidget } from './components/AIChatWidget';
 import { QRScannerModal } from './components/QRScannerModal';
 
 import { AdminPortal } from './components/AdminPortal';
@@ -414,6 +415,8 @@ export default function App() {
           onSelectStudentCard={stu => setSelectedPaymentCardStudent(stu)}
         />
       )}
+
+      <AIChatWidget darkMode={darkMode} />
 
       {showLoginModal && (
         <LoginModal
