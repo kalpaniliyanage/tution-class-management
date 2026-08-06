@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_data: {
+        Row: {
+          collection: string
+          data: Json
+          updated_at: string
+        }
+        Insert: {
+          collection: string
+          data?: Json
+          updated_at?: string
+        }
+        Update: {
+          collection?: string
+          data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          parts: Json
+          role: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          parts?: Json
+          role: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          parts?: Json
+          role?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
