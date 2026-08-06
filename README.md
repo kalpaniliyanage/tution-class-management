@@ -1,6 +1,6 @@
 # Payment Perfector
 
-the payment Êrds give in dark mode theme and when print selelct its not cor/ctly show thats  and also admin should mark when paymnet do the student paid or not  and fix all errors give cor/ct site
+the payment Cards give in dark mode theme and when print selelct its not cor/ctly show thats  and also admin should mark when paymnet do the student paid or not  and fix all errors give cor/ct site
 
 This project was built with [Lovable](https://lovable.dev).
 
