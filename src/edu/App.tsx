@@ -31,6 +31,7 @@ import { StudentIDCardView } from './components/StudentIDCardView';
 import { WallOfFame } from './components/WallOfFame';
 import { GateSecurityModal } from './components/GateSecurityModal';
 import { LoginModal } from './components/LoginModal';
+import { AIChatWidget } from './components/AIChatWidget';
 import { QRScannerModal } from './components/QRScannerModal';
 
 import { AdminPortal } from './components/AdminPortal';
@@ -68,47 +69,45 @@ export default function App() {
   const [showQRScanner, setShowQRScanner] = useState<boolean>(false);
   const [showLoginModal, setShowLoginModal] = useState<boolean>(false);
 
-  // Persistence Effects
+  // Persistence Effects (local cache + shared cloud)
   useEffect(() => { saveStoredClasses(classes); bulkSyncToFirestore('classes', classes); }, [classes]);
   useEffect(() => { saveStoredTeachers(teachers); bulkSyncToFirestore('teachers', teachers); }, [teachers]);
   useEffect(() => { saveStoredStudents(students); bulkSyncToFirestore('students', students); }, [students]);
   useEffect(() => { saveStoredPayments(payments); bulkSyncToFirestore('payments', payments); }, [payments]);
   useEffect(() => { saveStoredAttendance(attendance); bulkSyncToFirestore('attendance', attendance); }, [attendance]);
-  useEffect(() => { saveStoredExams(exams); }, [exams]);
-  useEffect(() => { saveStoredSettings(settings); }, [settings]);
+  useEffect(() => { saveStoredExams(exams); bulkSyncToFirestore('exams', exams); }, [exams]);
+  useEffect(() => { saveStoredSettings(settings); bulkSyncToFirestore('settings', settings); }, [settings]);
   useEffect(() => { saveStoredNotices(notices); bulkSyncToFirestore('notices', notices); }, [notices]);
-  useEffect(() => { saveStoredWallOfFame(wallOfFame); }, [wallOfFame]);
-  useEffect(() => { saveStoredTutes(tutes); }, [tutes]);
-  useEffect(() => { saveStoredHalls(halls); }, [halls]);
-  useEffect(() => { saveStoredFreeCards(freeCards); }, [freeCards]);
+  useEffect(() => { saveStoredWallOfFame(wallOfFame); bulkSyncToFirestore('wallOfFame', wallOfFame); }, [wallOfFame]);
+  useEffect(() => { saveStoredTutes(tutes); bulkSyncToFirestore('tutes', tutes); }, [tutes]);
+  useEffect(() => { saveStoredHalls(halls); bulkSyncToFirestore('halls', halls); }, [halls]);
+  useEffect(() => { saveStoredFreeCards(freeCards); bulkSyncToFirestore('freeCards', freeCards); }, [freeCards]);
 
-  // Firebase Realtime Cloud Sync Initializer
+  // Lovable Cloud realtime sync — same data on every phone & account
   useEffect(() => {
-    // Seed initial local data to Firestore if empty
-    seedCollectionToFirestore('students', students);
-    seedCollectionToFirestore('teachers', teachers);
-    seedCollectionToFirestore('classes', classes);
-    seedCollectionToFirestore('attendance', attendance);
-    seedCollectionToFirestore('payments', payments);
-    seedCollectionToFirestore('notices', notices);
+    const collections: [string, unknown, (v: never) => void][] = [
+      ['students', students, setStudents],
+      ['teachers', teachers, setTeachers],
+      ['classes', classes, setClasses],
+      ['attendance', attendance, setAttendance],
+      ['payments', payments, setPayments],
+      ['notices', notices, setNotices],
+      ['exams', exams, setExams],
+      ['settings', settings, setSettings],
+      ['wallOfFame', wallOfFame, setWallOfFame],
+      ['tutes', tutes, setTutes],
+      ['halls', halls, setHalls],
+      ['freeCards', freeCards, setFreeCards],
+    ];
 
-    // Subscribe to Firestore changes across multi-device sessions
-    const unsubStudents = subscribeToCollection<Student>('students', setStudents);
-    const unsubTeachers = subscribeToCollection<Teacher>('teachers', setTeachers);
-    const unsubClasses = subscribeToCollection<SubjectClass>('classes', setClasses);
-    const unsubAttendance = subscribeToCollection<AttendanceRecord>('attendance', setAttendance);
-    const unsubPayments = subscribeToCollection<PaymentRecord>('payments', setPayments);
-    const unsubNotices = subscribeToCollection<Notice>('notices', setNotices);
+    collections.forEach(([name, local, setter]) => {
+      seedCollectionToFirestore(name, local, setter);
+    });
 
-    return () => {
-      unsubStudents();
-      unsubTeachers();
-      unsubClasses();
-      unsubAttendance();
-      unsubPayments();
-      unsubNotices();
-    };
+    const unsubs = collections.map(([name, , setter]) => subscribeToCollection(name, setter));
+    return () => unsubs.forEach(u => u());
   }, []);
+
 
   // Dark Mode side effect
   useEffect(() => {
@@ -345,6 +344,7 @@ export default function App() {
             darkMode={darkMode}
             onOpenPaymentCard={() => setSelectedPaymentCardStudent(activeStudent)}
             onOpenIDCard={() => setSelectedIDCardStudent(activeStudent)}
+            onUpdateStudent={updated => setStudents(prev => prev.map(s => s.id === updated.id ? updated : s))}
           />
         )}
 
@@ -416,6 +416,8 @@ export default function App() {
           onSelectStudentCard={stu => setSelectedPaymentCardStudent(stu)}
         />
       )}
+
+      <AIChatWidget darkMode={darkMode} />
 
       {showLoginModal && (
         <LoginModal
