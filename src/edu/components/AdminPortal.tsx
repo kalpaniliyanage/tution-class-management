@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { generateStudentNumber, isDuplicateStudentNumber } from '../utils/ids';
 import React, { useState } from 'react';
 import {
   SubjectClass, Teacher, Student, PaymentRecord,
@@ -583,6 +584,12 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     e.preventDefault();
     if (!stuFullName.trim()) return;
 
+    // One student = one unique lifetime identity number (shared across every class they join)
+    if (isDuplicateStudentNumber(stuNumber, students, editingStudent?.id)) {
+      alert(`Student number ${stuNumber} already belongs to another student. Each student must have one unique identity number.`);
+      return;
+    }
+
     if (editingStudent) {
       const updated: Student = {
         ...editingStudent,
@@ -603,7 +610,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     } else {
       const created: Student = {
         id: `stu-${Date.now()}`,
-        studentNumber: stuNumber || `EDU-2026-${Math.floor(10000 + Math.random() * 90000)}`,
+        studentNumber: stuNumber || generateStudentNumber(students, stuGrade),
         fullName: stuFullName,
         nameWithInitials: stuFullName.split(' ').map(n => n[0]).join('. ') + ' ' + (stuFullName.split(' ').slice(-1)[0] || ''),
         photo: stuPhoto || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
